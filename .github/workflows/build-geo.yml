@@ -1,0 +1,47 @@
+# 지도 경계(시도·시군구) 만들기 — 처음 한 번, 그리고 행정구역이 바뀌었을 때만 직접 실행.
+# Actions 탭 → '지도 경계 만들기' → Run workflow → 원본 주소 붙여 넣기
+name: 지도 경계 만들기
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: "행정동(또는 시군구) 경계 GeoJSON 파일 주소 (예: GitHub 의 Raw 주소)"
+        required: true
+      credit:
+        description: "화면 하단 출처 표기"
+        required: true
+        default: "행정동 경계 공개 데이터 (통계청 등 원자료)"
+      keep_gu:
+        description: "일반구(수원시 장안구 등)까지 나누기"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  geo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: 경계 만들기
+        env:
+          KEEP_GU: ${{ inputs.keep_gu && '1' || '0' }}
+          SOURCE_URL: ${{ inputs.source_url }}
+          CREDIT: ${{ inputs.credit }}
+        run: sh tools/build_geo.sh "$SOURCE_URL" "$CREDIT"
+      - name: 저장
+        run: |
+          git config user.name "jdmap-bot"
+          git config user.email "jdmap-bot@users.noreply.github.com"
+          git add docs/geo
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          git commit -m "지도 경계 갱신"
+          git push
