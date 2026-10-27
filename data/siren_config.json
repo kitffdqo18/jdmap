@@ -1,0 +1,30 @@
+{
+  "_설명": "사이렌 데이터 주소를 개발자도구에서 확인한 뒤 list_url·params·json 항목을 채우고 enabled 를 true 로 바꾸세요. README '사이렌 연동 설정' 참고.",
+  "enabled": false,
+  "mode": "json",
+  "public_url": "https://portal.kosha.or.kr/archive/imprtnDsstrAlrame/CSADV50000/CSADV50000M01",
+  "list_url": "https://portal.kosha.or.kr/여기에_목록_API_주소",
+  "method": "POST",
+  "body_type": "json",
+  "params": { "pageIndex": "{page}", "pageUnit": 20 },
+  "headers": { "Referer": "https://portal.kosha.or.kr/archive/imprtnDsstrAlrame/CSADV50000/CSADV50000M01" },
+  "pages": 2,
+  "delay_seconds": 1.5,
+  "json": {
+    "items_path": "data.list",
+    "id": "게시물번호_필드명",
+    "title": "제목_필드명",
+    "body": "본문_필드명",
+    "posted": "등록일_필드명",
+    "url_template": "",
+    "detail_url": "",
+    "detail_body": ""
+  },
+  "html": {
+    "item_selector": "table tbody tr",
+    "link_selector": "a",
+    "title_selector": "td.subject",
+    "date_selector": "td.date",
+    "detail_body_selector": ".view_content"
+  }
+}

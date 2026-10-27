@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>중대재해 MAP</title>
+<meta name="description" content="전국 중대재해 발생 현황을 지도로 보고, 기업중대재해배상책임보험 견적을 신청하세요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: 관제 화면(어두운 지도 스테이지)을 중심에 두고, 아래로 보험 안내 → Q&A → 견적 신청이 이어지는 단일 페이지 */
+:root{
+  --bg:#EDF0F3; --surface:#FFFFFF; --surface-2:#F5F7F9; --ink:#14202B; --muted:#5A6774; --line:#D3DAE1;
+  --accent:#E8A100; --accent-ink:#8A5C00; --accent-soft:#FFF1CC; --danger:#C9362A; --danger-soft:#FBE3E0; --ok:#1F7A55; --ok-soft:#DDF1E7;
+  --stage:#0D1823; --stage-2:#132331; --stage-ink:#DCE7F0; --stage-muted:#8EA3B5; --stage-line:#24384A;
+  --land:#2A4258; --land-hi:#3A5C78; --land-sel:#E8A100; --wall:#16283A;
+  --f-display:"Black Han Sans","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:12px; --r-sm:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1118; --surface:#111B25; --surface-2:#16222E; --ink:#E5ECF2; --muted:#8B9AA8; --line:#243240;
+  --accent:#F5B82E; --accent-ink:#F5B82E; --accent-soft:#3A2E10; --danger:#FF6B5C; --danger-soft:#3A1A17; --ok:#4CC08D; --ok-soft:#12301F;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1118; --surface:#111B25; --surface-2:#16222E; --ink:#E5ECF2; --muted:#8B9AA8; --line:#243240;
+  --accent:#F5B82E; --accent-ink:#F5B82E; --accent-soft:#3A2E10; --danger:#FF6B5C; --danger-soft:#3A1A17; --ok:#4CC08D; --ok-soft:#12301F;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:clamp(16px,3vw,40px);padding-block:0 48px}
+a{color:inherit}
+.wrap{max-width:1360px;margin-inline:auto}
+.hazard{height:6px;margin-inline:calc(-1 * clamp(16px,3vw,40px));background:repeating-linear-gradient(-45deg,var(--accent) 0 14px,#1A1A1A 14px 28px)}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);margin-inline:calc(-1 * clamp(16px,3vw,40px));padding:12px clamp(16px,3vw,40px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-mark{width:30px;height:30px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#1A1A1A;font-family:var(--f-display);font-size:17px}
+.brand b{font-family:var(--f-display);font-weight:400;font-size:21px;letter-spacing:.5px}
+.brand small{display:block;font-size:10.5px;color:var(--muted);letter-spacing:.12em;line-height:1}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav a{text-decoration:none;font-size:14px;font-weight:500;color:var(--muted);padding:7px 12px;border-radius:999px}
+nav a:hover{color:var(--ink);background:var(--surface-2)}
+nav a.cta{background:var(--ink);color:var(--bg)}
+nav a.cta:hover{background:var(--ink);opacity:.9}
+nav a[hidden]{display:none}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;padding-block:32px 20px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-ink);text-transform:uppercase;font-weight:600}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,4.4vw,54px);line-height:1.12;margin:8px 0 10px;text-wrap:balance;letter-spacing:-.5px}
+.lede{color:var(--muted);max-width:62ch;margin:0}
+.stamp{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);text-align:right;line-height:1.7}
+.stamp b{color:var(--ink);font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink)}
+.chip.red{background:var(--danger-soft);color:var(--danger)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:2px}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi b{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,3vw,38px);line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi b small{font-family:var(--f-body);font-size:14px;color:var(--muted);margin-left:3px}
+.kpi.alert b{color:var(--danger)}
+.kpi em{font-style:normal;font-size:12px;color:var(--muted)}
+
+/* board */
+.board{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:16px;align-items:stretch}
+.stage{position:relative;background:radial-gradient(130% 100% at 38% 22%,#BFDDEB 0%,#93C1DA 42%,#6A9EC0 78%,#5A8DB2 100%);border-radius:16px;overflow:hidden;min-height:620px;color:#14202B;border:1px solid #7FA9C4}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y;cursor:grab;transition:opacity .22s}
+.stage canvas.fading{opacity:0}
+.crumb{position:absolute;top:58px;left:14px;font-family:var(--f-display);font-size:22px;color:#14202B;text-shadow:0 0 6px rgba(255,255,255,.9),0 0 2px #fff;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.stage canvas{transition:none}}
+.stage canvas.dragging{cursor:grabbing}
+.stage canvas.pointer{cursor:pointer}
+.stage-bar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;pointer-events:none}
+.stage-bar>*{pointer-events:auto}
+.seg{display:inline-flex;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);box-shadow:0 2px 8px rgba(20,50,80,.12);border-radius:999px;padding:3px}
+.seg button{font:inherit;font-size:13px;background:none;border:0;color:#3E4D5A;padding:5px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#1A1A1A;font-weight:600}
+.seg button:focus-visible,.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ghost{font:inherit;font-size:13px;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);color:#14202B;box-shadow:0 2px 8px rgba(20,50,80,.12);padding:6px 12px;border-radius:999px;cursor:pointer}
+.ghost:hover{border-color:#5A6774}
+.legend{position:absolute;left:14px;bottom:56px;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);border-radius:10px;padding:10px 12px;font-size:12px;color:#3E4D5A;display:grid;gap:5px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.hint{position:absolute;right:14px;bottom:56px;font-size:12px;color:#3E4D5A;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);border-radius:10px;padding:8px 12px;max-width:260px}
+.tip{position:absolute;pointer-events:none;background:#F4F7FA;color:#14202B;border-radius:8px;padding:7px 10px;font-size:12.5px;box-shadow:0 6px 20px #0006;transform:translate(-50%,calc(-100% - 12px));white-space:nowrap;opacity:0;transition:opacity .12s}
+.tip b{font-weight:700}
+.maperr{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:#1F3B52;font-size:14px}
+
+/* ticker */
+.ticker{position:absolute;left:0;right:0;bottom:0;height:42px;background:#060C12;border-top:1px solid var(--stage-line);display:flex;align-items:center;overflow:hidden}
+.ticker .lab{flex:none;height:100%;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--danger);color:#fff;font-family:var(--f-display);font-size:15px;letter-spacing:.5px;z-index:1}
+.ticker .lab::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1.2s infinite}
+.track{display:flex;gap:48px;white-space:nowrap;padding-left:24px;animation:scroll 70s linear infinite;font-family:var(--f-mono);font-size:13px;color:#FFD467}
+.ticker:hover .track{animation-play-state:paused}
+.track span b{color:#fff;font-weight:600;margin-right:6px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.track{animation:none}.ticker .lab::before{animation:none}}
+
+/* side panel */
+.side{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0;max-height:620px}
+.side-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.side-head .btn{white-space:nowrap;flex:none}
+.side h2{font-family:var(--f-display);font-weight:400;font-size:28px;margin:2px 0 0;line-height:1.15}
+.side .sub{font-size:13px;color:var(--muted)}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mini div{background:var(--surface-2);border-radius:var(--r-sm);padding:9px 10px}
+.mini span{display:block;font-size:11.5px;color:var(--muted)}
+.mini b{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:92px 1fr 28px;gap:8px;align-items:center;font-size:12.5px}
+.bar .t{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.bar b{font-family:var(--f-mono);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.list{overflow:auto;display:grid;gap:8px;padding-right:4px;margin-right:-4px;min-height:0;flex:1}
+.inc{display:grid;grid-template-columns:4px 1fr;gap:12px;padding:11px 12px 11px 0;border-bottom:1px solid var(--line);text-align:left;background:none;border-top:0;border-left:0;border-right:0;font:inherit;color:inherit;cursor:pointer;width:100%}
+.inc:hover{background:var(--surface-2)}
+.inc:focus-visible{outline:2px solid var(--accent)}
+.inc .sev{border-radius:2px;background:var(--accent)}
+.inc .sev.dead{background:var(--danger)}
+.inc .meta{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.inc .ttl{font-weight:600;font-size:14px;margin:2px 0}
+.inc .ov{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.btn{font:inherit;font-weight:600;font-size:14px;border-radius:10px;padding:11px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.amber{background:var(--accent);color:#1A1A1A;border-color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.empty{color:var(--muted);font-size:13.5px;padding:18px 0}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:#05090Daa;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:41;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer.on{transform:none}
+@media (prefers-reduced-motion:reduce){.drawer,.scrim{transition:none}}
+.dr-head{padding:22px 24px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}
+.dr-head h3{font-family:var(--f-display);font-weight:400;font-size:26px;margin:4px 0 0}
+.dr-body{overflow:auto;padding:16px 24px 24px;display:grid;gap:14px;align-content:start}
+.card{border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:8px}
+.card .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.card h4{margin:0;font-size:16px}
+.kv{display:grid;grid-template-columns:72px 1fr;gap:4px 10px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.x{font:inherit;font-size:22px;line-height:1;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:8px;height:fit-content}
+.x:hover{background:var(--surface-2);color:var(--ink)}
+
+/* sections */
+section.block{padding-block:56px 8px}
+.sec-head{display:grid;gap:6px;margin-bottom:22px;max-width:760px}
+.sec-head h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,3vw,36px);margin:0;line-height:1.2;text-wrap:balance}
+.sec-head p{margin:0;color:var(--muted)}
+.law{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.law .cell{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:6px;align-content:start}
+.law .cell span{font-size:12.5px;color:var(--muted)}
+.law .cell b{font-size:17px}
+.law .cell p{margin:0;font-size:14px;color:var(--muted)}
+.cover{margin-top:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.cover .col{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.cover h3{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:8px}
+.cover ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.cover li{display:grid;grid-template-columns:20px 1fr;gap:8px;font-size:14px}
+.cover li::before{content:"";width:8px;height:8px;border-radius:2px;margin-top:8px;background:var(--ok)}
+.cover .no li::before{background:var(--danger);border-radius:50%}
+.cover li small{display:block;color:var(--muted);font-size:12.5px}
+.draft{margin-top:12px;font-size:12.5px;color:var(--muted)}
+
+.faq{display:grid;gap:8px;max-width:920px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0 18px}
+.faq summary{cursor:pointer;padding:16px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-family:var(--f-mono);color:var(--muted);font-size:18px;line-height:1}
+.faq details[open] summary::after{content:"−"}
+.faq summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
+.faq .a{padding-bottom:16px;color:var(--muted);font-size:14.5px;max-width:72ch}
+
+/* form */
+.quote{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.8fr);gap:16px;align-items:start}
+form.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:18px}
+fieldset{border:0;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+legend{font-size:12px;font-family:var(--f-mono);letter-spacing:.12em;color:var(--accent-ink);font-weight:600;margin-bottom:10px;grid-column:1/-1;text-transform:uppercase}
+.f{display:grid;gap:5px;min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font-size:13px;font-weight:600}
+.f label i{color:var(--danger);font-style:normal;margin-left:2px}
+.f input,.f select,.f textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;width:100%}
+.f textarea{min-height:84px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.f .unit{position:relative}
+.f .unit input{padding-right:46px}
+.f .unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted)}
+.f .err{font-size:12px;color:var(--danger);min-height:0}
+.f.bad input,.f.bad select{border-color:var(--danger)}
+.f .help{font-size:12px;color:var(--muted)}
+.consent{background:var(--surface-2);border-radius:10px;padding:14px 16px;display:grid;gap:10px}
+.consent label{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:600;cursor:pointer}
+.consent input{width:18px;height:18px;margin-top:2px;accent-color:var(--ink)}
+.consent details{font-size:13px;color:var(--muted)}
+.consent summary{cursor:pointer;color:var(--ink);font-weight:500}
+.consent table{border-collapse:collapse;width:100%;margin-top:8px;font-size:12.5px}
+.consent th,.consent td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.consent th{width:90px;font-weight:600;color:var(--ink)}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.status{font-size:13.5px}
+.aside{display:grid;gap:12px}
+.aside .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.aside h3{margin:0 0 8px;font-size:16px}
+.steps{margin:0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:28px 1fr;gap:10px;font-size:14px;counter-increment:s}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--f-mono);font-size:12px}
+.steps li small{display:block;color:var(--muted);font-size:12.5px}
+.done{border:1px solid var(--ok);background:var(--ok-soft);border-radius:16px;padding:24px;display:grid;gap:10px}
+.done h3{margin:0;font-size:20px}
+.done dl{display:grid;grid-template-columns:110px 1fr;gap:4px 12px;margin:0;font-size:14px}
+.done dt{color:var(--muted)}
+.done dd{margin:0}
+
+/* admin */
+.admin-tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.admin-tbl table{border-collapse:collapse;width:100%;min-width:980px;font-size:13px}
+.admin-tbl th,.admin-tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.admin-tbl th{font-size:12px;color:var(--muted);font-weight:600;background:var(--surface-2);position:sticky;top:0}
+.admin-tbl td.num{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.admin-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:grid;gap:6px}
+
+@media (max-width:1080px){.board{grid-template-columns:1fr}.side{max-height:none}.list{max-height:420px}}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.law{grid-template-columns:1fr}.cover{grid-template-columns:1fr}.quote{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.stamp{text-align:left}}
+@media (max-width:560px){.stage{min-height:480px}fieldset{grid-template-columns:1fr}form.panel{padding:18px}.legend{display:none}.hint{left:14px;right:14px;max-width:none}nav{margin-left:0}.top .wrap{gap:8px}}
+</style>
+</head>
+<body>
+
+<div class="hazard" aria-hidden="true"></div>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#board"><span class="brand-mark">重</span><span><b>중대재해 MAP</b><small>SERIOUS ACCIDENT MONITOR</small></span></a>
+    <nav aria-label="주요 메뉴">
+      <a href="#board">현황판</a>
+      <a href="#insurance">보험 안내</a>
+      <a href="#faq">Q&amp;A</a>
+      <a class="cta" href="#quote">간편 견적 신청</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero" id="board">
+    <div>
+      <div class="eyebrow">전국 중대재해 현황판</div>
+      <h1>오늘, 전국 사업장에서 일어난 중대재해</h1>
+      <p class="lede">안전보건공단 '중대재해 사이렌'에 게시되는 사고를 매일 지도에 표시합니다. 지역을 한 번 누르면 해당 시·도가 솟아오르고, 한 번 더 누르면 사고 상세 내용이 열립니다.</p>
+    </div>
+    <div class="stamp">
+      <span class="chip" id="dataChip">불러오는 중</span><br>
+      기준일 <b id="baseDate">-</b><br>
+      출처 안전보건공단 중대재해 사이렌
+    </div>
+  </div>
+
+  <div class="kpis" aria-live="polite">
+    <div class="kpi alert"><span>오늘 게시된 사고</span><b id="kToday">-<small>건</small></b><em id="kTodaySub">&nbsp;</em></div>
+    <div class="kpi"><span>최근 7일</span><b id="k7">-<small>건</small></b><em id="k7Sub">&nbsp;</em></div>
+    <div class="kpi"><span>최근 30일 사망자</span><b id="kDead">-<small>명</small></b><em id="kDeadSub">&nbsp;</em></div>
+    <div class="kpi"><span>최근 30일 최다 업종</span><b id="kInd">-</b><em id="kIndSub">&nbsp;</em></div>
+  </div>
+
+  <div class="board">
+    <div class="stage" id="stage">
+      <canvas id="map" role="img" aria-label="대한민국 시도별 중대재해 3D 지도"></canvas>
+      <div class="stage-bar">
+        <div class="seg" role="group" aria-label="기간 선택">
+          <button type="button" data-range="1" aria-pressed="false">오늘</button>
+          <button type="button" data-range="7" aria-pressed="true">7일</button>
+          <button type="button" data-range="30" aria-pressed="false">30일</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="ghost" id="btnSpin">회전</button>
+          <button type="button" class="ghost" id="btnBack" hidden>← 전국</button>
+          <button type="button" class="ghost" id="btnReset">전국 보기</button>
+        </div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <div><i style="background:#FF5A4A"></i>사망 사고 포함</div>
+        <div><i style="background:#F5B82E"></i>부상 사고</div>
+        <div>기둥 높이 = 사고 건수</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="display:inline-block;width:64px;height:8px;border-radius:4px;background:linear-gradient(90deg,#86AE74,#B9BD86,#B39A6E,#8E7B66,#ECE7DE)"></span>평지 → 산지</div>
+      </div>
+      <div class="crumb" id="crumb" hidden></div>
+      <div class="hint" id="hint">시·도를 눌러 선택 · 한 번 더 누르면 시군구로 들어가기 · 드래그로 회전</div>
+      <div class="tip" id="tip"></div>
+      <div class="maperr" id="mapErr" hidden></div>
+      <div class="ticker" aria-label="최근 사고 전광판">
+        <div class="lab">LIVE</div>
+        <div class="track" id="track"></div>
+      </div>
+    </div>
+
+    <aside class="side" aria-live="polite">
+      <div class="side-head">
+        <div>
+          <div class="eyebrow" id="sideEyebrow">전국 · 최근 7일</div>
+          <h2 id="sideTitle">전국</h2>
+          <div class="sub" id="sideSub">지도에서 시·도를 선택하세요.</div>
+        </div>
+        <button type="button" class="btn" id="btnDetail" hidden>상세 보기</button>
+      </div>
+      <div class="mini">
+        <div><span>사고</span><b id="sCnt">0</b></div>
+        <div><span>사망</span><b id="sDead">0</b></div>
+        <div><span>부상</span><b id="sInj">0</b></div>
+      </div>
+      <div class="bars" id="sBars"></div>
+      <div class="list" id="sList"></div>
+    </aside>
+  </div>
+
+  <!-- 보험 안내 -->
+  <section class="block" id="insurance">
+    <div class="sec-head">
+      <div class="eyebrow">기업중대재해배상책임보험</div>
+      <h2>사고 한 건이 회사에 남기는 책임</h2>
+      <p>중대재해처벌법은 사업주와 경영책임자에게 안전보건 확보의무를 지우고, 중대재해가 발생하면 형사처벌과 손해배상책임을 함께 묻습니다.</p>
+    </div>
+    <div class="law">
+      <div class="cell"><span>적용 대상</span><b>상시근로자 5인 이상 사업장</b><p>2022년 1월 27일 시행, 2024년 1월 27일부터 50인 미만 사업장까지 확대 적용</p></div>
+      <div class="cell"><span>형사 책임 (사망 시)</span><b>1년 이상 징역 또는 10억원 이하 벌금</b><p>법인에는 50억원 이하 벌금 병과 (양벌규정)</p></div>
+      <div class="cell"><span>민사 책임</span><b>손해액의 최대 5배 배상</b><p>고의 또는 중대한 과실로 의무를 위반한 경우 징벌적 손해배상</p></div>
+    </div>
+    <div class="cover">
+      <div class="col">
+        <h3><span class="chip ok">보상</span>보험으로 대비할 수 있는 것</h3>
+        <ul>
+          <li><span>피해 근로자·유족에 대한 법률상 손해배상금<small>사용자배상책임 및 중대재해 관련 배상책임, 징벌적 손해배상 포함 여부는 상품 조건에 따름</small></span></li>
+          <li><span>형사·민사 소송 방어비용<small>변호사 선임비용, 소송비용, 중재·화해 비용</small></span></li>
+          <li><span>사고 후 위기관리 비용<small>언론 대응, 현장 수습 등 특약 가입 시</small></span></li>
+        </ul>
+      </div>
+      <div class="col no">
+        <h3><span class="chip red">미보상</span>보험으로 대신할 수 없는 것</h3>
+        <ul>
+          <li><span>사업주·법인에 부과되는 벌금, 과태료<small>형사 처벌에 따른 금전 제재는 보험 대상이 아님</small></span></li>
+          <li><span>고의로 일으킨 사고<small>고의·범죄행위로 인한 손해</small></span></li>
+          <li><span>안전보건 확보의무 이행 자체<small>보험은 사고 이후의 재무 위험을 덜어 줄 뿐, 법적 의무를 대신하지 않음</small></span></li>
+        </ul>
+      </div>
+    </div>
+    <p class="draft">※ 보장 내용과 한도는 상품 약관과 가입 조건에 따라 다릅니다. 가입 전 상품설명서와 약관을 확인하세요.</p>
+  </section>
+
+  <!-- Q&A -->
+  <section class="block" id="faq">
+    <div class="sec-head">
+      <div class="eyebrow">자주 묻는 질문</div>
+      <h2>가입 전에 많이 물어보시는 것</h2>
+    </div>
+    <div class="faq">
+      <details><summary>우리 회사도 중대재해처벌법 적용 대상인가요?</summary><div class="a">상시근로자 5인 이상이면 업종과 관계없이 적용됩니다. 2024년 1월 27일부터는 50인 미만 사업장도 포함됩니다. 하도급 관계에서는 원청도 책임을 질 수 있습니다.</div></details>
+      <details><summary>근로자재해보상보험(산재보험)에 가입했는데 따로 필요한가요?</summary><div class="a">산재보험은 근로자에게 법정 보상을 지급하는 제도입니다. 유족이 회사를 상대로 산재보상을 넘는 손해배상을 청구하거나, 징벌적 손해배상이 인정되는 경우에는 산재보험으로 처리되지 않습니다. 그 부분을 배상책임보험으로 대비합니다.</div></details>
+      <details><summary>벌금도 보험으로 보상받을 수 있나요?</summary><div class="a">아닙니다. 사업주나 법인에 선고되는 벌금은 형사 제재이므로 보험으로 보상하지 않습니다. 다만 형사 재판의 방어비용은 상품에 따라 보상받을 수 있습니다.</div></details>
+      <details><summary>보험료는 어떤 기준으로 산출되나요?</summary><div class="a">업종, 상시근로자 수, 매출액, 연간 총급여, 과거 사고 이력, 보상한도와 자기부담금을 기준으로 산출합니다. 아래 간편 견적 신청에 기본 정보를 남겨 주시면 담당자가 검토 후 연락드립니다.</div></details>
+      <details><summary>하청업체 근로자의 사고도 보상되나요?</summary><div class="a">원청 사업주가 법률상 배상책임을 지는 범위에서 보상받을 수 있습니다. 하청 근로자 포함 여부와 범위는 가입 조건으로 정하므로 상담 시 함께 확인해야 합니다.</div></details>
+      <details><summary>신청하면 바로 가입되나요?</summary><div class="a">아닙니다. 간편 견적 신청은 상담 요청입니다. 담당자가 입력 정보를 검토해 추가 자료를 요청하고, 견적을 안내한 뒤 가입 여부를 결정하시면 됩니다.</div></details>
+    </div>
+  </section>
+
+  <!-- 견적 신청 -->
+  <section class="block" id="quote">
+    <div class="sec-head">
+      <div class="eyebrow">간편 견적 신청</div>
+      <h2>기본 정보만 남기시면 담당자가 연락드립니다</h2>
+      <p>보험료 산출에 필요한 항목입니다. 정확하지 않아도 괜찮습니다. 상담하면서 함께 확인합니다.</p>
+    </div>
+    <div class="quote">
+      <div id="formWrap">
+        <form class="panel" id="qform" novalidate>
+          <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true"><label for="q_website">웹사이트</label><input id="q_website" name="website" tabindex="-1" autocomplete="off"></div>
+          <fieldset>
+            <legend>사업장 정보</legend>
+            <div class="f"><label for="q_biz">사업자등록번호<i>*</i></label><input id="q_biz" name="biz" inputmode="numeric" autocomplete="off" placeholder="000-00-00000" maxlength="12"><div class="err" id="e_biz"></div></div>
+            <div class="f"><label for="q_corp">회사명<i>*</i></label><input id="q_corp" name="corp" autocomplete="organization" placeholder="(주)안전산업"><div class="err" id="e_corp"></div></div>
+            <div class="f"><label for="q_ind">업종<i>*</i></label>
+              <select id="q_ind" name="ind"><option value="">선택하세요</option><option>건설업</option><option>제조업</option><option>운수·창고업</option><option>도소매업</option><option>숙박·음식점업</option><option>사업서비스업</option><option>농림어업</option><option>광업</option><option>기타</option></select><div class="err" id="e_ind"></div></div>
+            <div class="f"><label for="q_emp">상시근로자 수<i>*</i></label><div class="unit"><input id="q_emp" name="emp" inputmode="numeric" placeholder="120"><span>명</span></div><div class="err" id="e_emp"></div></div>
+            <div class="f"><label for="q_sales">연 매출액</label><div class="unit"><input id="q_sales" name="sales" inputmode="decimal" placeholder="350"><span>억원</span></div><div class="help">직전 사업연도 기준</div></div>
+            <div class="f"><label for="q_pay">연간 총급여</label><div class="unit"><input id="q_pay" name="pay" inputmode="decimal" placeholder="62"><span>억원</span></div><div class="help">근로자 급여 총액</div></div>
+          </fieldset>
+          <fieldset>
+            <legend>담당자 정보</legend>
+            <div class="f"><label for="q_name">담당자명<i>*</i></label><input id="q_name" name="name" autocomplete="name"><div class="err" id="e_name"></div></div>
+            <div class="f"><label for="q_tel">연락처<i>*</i></label><input id="q_tel" name="tel" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" maxlength="13"><div class="err" id="e_tel"></div></div>
+            <div class="f wide"><label for="q_mail">이메일</label><input id="q_mail" name="mail" type="email" autocomplete="email" placeholder="safety@company.co.kr"><div class="err" id="e_mail"></div></div>
+            <div class="f wide"><label for="q_memo">문의 내용</label><textarea id="q_memo" name="memo" placeholder="현재 가입한 보험, 원하는 보상한도, 하청 근로자 포함 여부 등"></textarea></div>
+          </fieldset>
+          <div class="consent">
+            <label><input type="checkbox" id="q_agree"> [필수] 개인정보 수집·이용에 동의합니다.</label>
+            <details><summary>수집·이용 내용 보기</summary>
+              <table>
+                <tr><th>수집 항목</th><td>담당자명, 연락처, 이메일, 사업자등록번호, 회사명, 업종, 상시근로자 수, 매출액, 총급여, 문의 내용</td></tr>
+                <tr><th>이용 목적</th><td>기업중대재해배상책임보험 견적 산출 및 상담 연락</td></tr>
+                <tr><th>보유 기간</th><td>상담 종료 후 1년 (계약 체결 시 관련 법령에 따른 기간)</td></tr>
+              </table>
+              <p>동의를 거부할 수 있으며, 거부하면 견적 신청을 할 수 없습니다. 자세한 내용은 <a href="privacy.html" target="_blank" rel="noopener">개인정보 처리방침</a>을 확인하세요.</p>
+            </details>
+            <div class="err" id="e_agree" style="font-size:12px;color:var(--danger)"></div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn amber" id="qsubmit">견적 신청하기</button>
+            <span class="status" id="qstatus" role="status"></span>
+          </div>
+        </form>
+      </div>
+      <div class="aside">
+        <div class="box">
+          <h3>신청 후 진행</h3>
+          <ol class="steps">
+            <li><span>접수<small>입력 정보가 담당자에게 전달됩니다</small></span></li>
+            <li><span>검토 및 연락<small>영업일 기준 1~2일 내 연락</small></span></li>
+            <li><span>견적 안내<small>보상한도·자기부담금별 보험료 비교</small></span></li>
+          </ol>
+        </div>
+        <div class="box">
+          <h3>준비하면 좋은 자료</h3>
+          <ul style="margin:0;padding-left:18px;font-size:14px;color:var(--muted);display:grid;gap:4px">
+            <li>사업자등록증</li><li>직전 연도 재무제표</li><li>최근 3년 산재 발생 내역</li><li>현재 가입 중인 배상책임보험 증권</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>사고 정보 출처: <a href="https://portal.kosha.or.kr/archive/imprtnDsstrAlrame/CSADV50000/CSADV50000M01" target="_blank" rel="noopener">안전보건공단 중대재해 사이렌 ↗</a> · 사고 내용은 공단 게시물을 요약한 것이며, 정확한 내용은 원문을 확인하세요.</div>
+    <div><a href="privacy.html">개인정보 처리방침</a> · <span id="geoCredit">지도 경계: 행정구역 경계 공개 데이터</span> · <span id="opContact"></span></div>
+  </footer>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drTitle">
+  <div class="dr-head">
+    <div><div class="eyebrow" id="drEyebrow">중대재해 사이렌</div><h3 id="drTitle">-</h3><div class="sub" id="drSub" style="font-size:13px;color:var(--muted)"></div></div>
+    <button type="button" class="x" id="drClose" aria-label="닫기">×</button>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+</aside>
+
+<script>window.Highcharts = window.Highcharts || { maps: {} };</script>
+<script src="config.js"></script>
+<script src="data/incidents.js"></script>
+<script src="geo/kr-sido.js"></script>
+<script>if (!Highcharts.maps["countries/kr/kr-all"]) document.write('<script src="https://cdn.jsdelivr.net/npm/@highcharts/map-collection@2.0.0/countries/kr/kr-all.js"><\/script>');</script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- 기본 데이터 ---------- */
+const SIREN = "https://portal.kosha.or.kr/archive/imprtnDsstrAlrame/CSADV50000/CSADV50000M01";
+const NAME_KO = {"Seoul":"서울","Busan":"부산","Daegu":"대구","Incheon":"인천","Gwangju":"광주","Daejeon":"대전","Ulsan":"울산","Sejong":"세종","Gyeonggi":"경기","Gangwon":"강원","North Chungcheong":"충북","South Chungcheong":"충남","North Jeolla":"전북","South Jeolla":"전남","North Gyeongsang":"경북","South Gyeongsang":"경남","Jeju":"제주"};
+const FULL = {"서울":"서울특별시","부산":"부산광역시","대구":"대구광역시","인천":"인천광역시","광주":"광주광역시","대전":"대전광역시","울산":"울산광역시","세종":"세종특별자치시","경기":"경기도","강원":"강원특별자치도","충북":"충청북도","충남":"충청남도","전북":"전북특별자치도","전남":"전라남도","경북":"경상북도","경남":"경상남도","제주":"제주특별자치도"};
+// 통계청 SGIS 등 국문 시도명 경계 데이터도 그대로 쓸 수 있게
+const KO_ALIAS = Object.assign({}, ...Object.entries(FULL).map(([k,v]) => ({[v]:k, [k]:k})), {"강원도":"강원","전라북도":"전북"});
+let BASE = new Date();
+let INCIDENTS = [];
+
+function parseDt(s){ if (!s) return null; const d = new Date(s.length > 10 ? s.replace(" ","T") : s + "T00:00"); return isNaN(d) ? null : d; }
+async function loadIncidents(){
+  try {
+    const j = window.JDMAP_DATA;
+    if (!j || !Array.isArray(j.items)) throw new Error("no data");
+    BASE = parseDt(j.base_date) || new Date();
+    INCIDENTS = j.items.map(x => {
+      const posted = parseDt(x.posted_date), occ = parseDt(x.occurred_at);
+      return { id: "i" + (x.id ?? Math.random().toString(36).slice(2)), region: x.sido || null, sigungu: x.sigungu || "", ind: x.industry || "", type: x.accident_type || "",
+        dead: x.deaths || 0, inj: x.injuries || 0, posted, when: occ || posted, hasTime: !!(x.occurred_at && x.occurred_at.length > 10),
+        hasDate: !!x.occurred_at, age: Math.round((BASE - posted) / 86400000), text: x.summary || x.title || "", title: x.title || "", url: x.source_url || "", sid: x.sid || "" };
+    });
+    $("dataChip").textContent = j.updated_at ? `안전보건공단 게시 기준 · ${j.updated_at.slice(5,16).replace("T"," ")} 갱신` : "안전보건공단 게시 기준";
+    $("dataChip").className = "chip ok";
+  } catch (err) {
+    INCIDENTS = [];
+    $("dataChip").textContent = "사고 정보를 불러오지 못했습니다";
+    $("dataChip").className = "chip red";
+  }
+  renderKpis(); renderSide(); CNT = counts(); dirty = true;
+}
+/* ---------- 유틸 ---------- */
+const $ = id => document.getElementById(id);
+const fmtD = d => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+const fmtT = d => `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let range = 7, selected = null, level = "nation", drillSido = null;
+const normS = v => (v || "").replace(/\s+/g, "");
+function sggMatch(a, b){ a = normS(a); b = normS(b); return !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a)); }
+const curSido = () => level === "sido" ? drillSido : selected;
+const curSgg = () => level === "sido" ? selected : null;
+const placeName = () => { const sd = curSido(), sg = curSgg(); return sd ? (FULL[sd] + (sg ? " " + sg : "")) : "전국"; };
+const inRange = (r = range) => INCIDENTS.filter(x => x.age < r);
+const title = x => x.title || `${x.region || "지역 미상"} ${x.sigungu || ""} · ${x.ind || ""} ${x.type || ""} 사고`;
+
+/* ---------- KPI / 티커 ---------- */
+function renderKpis(){
+  $("baseDate").textContent = fmtD(BASE);
+  const t = inRange(1), w = inRange(7), m = inRange(30), pw = INCIDENTS.filter(x=>x.age>=7&&x.age<14);
+  $("kToday").innerHTML = `${t.length}<small>건</small>`;
+  $("kTodaySub").textContent = `사망 ${t.reduce((s,x)=>s+x.dead,0)}명 · 부상 ${t.reduce((s,x)=>s+x.inj,0)}명`;
+  $("k7").innerHTML = `${w.length}<small>건</small>`;
+  const diff = w.length - pw.length;
+  $("k7Sub").textContent = `직전 7일 대비 ${diff>=0?"+":""}${diff}건`;
+  $("kDead").innerHTML = `${m.reduce((s,x)=>s+x.dead,0)}<small>명</small>`;
+  $("kDeadSub").textContent = `사고 ${m.length}건 중 사망 사고 ${m.filter(x=>x.dead).length}건`;
+  const ic = {}; m.forEach(x => ic[x.ind] = (ic[x.ind]||0)+1);
+  const top = Object.entries(ic).sort((a,b)=>b[1]-a[1])[0];
+  if (top){ $("kInd").textContent = top[0]; $("kIndSub").textContent = `${top[1]}건 · 전체의 ${Math.round(top[1]/m.length*100)}%`; }
+  else { $("kInd").textContent = "-"; $("kIndSub").textContent = "최근 30일 게시 없음"; }
+  const items = INCIDENTS.slice(0, 14).map(x => `<span><b>${fmtD(x.posted).slice(5)}</b>${esc(FULL[x.region] || "지역 미상")} ${esc(x.sigungu)} · ${esc(x.ind || "업종 미상")} · ${esc(x.type || "")} · ${x.dead?`사망 ${x.dead}명`:`부상 ${x.inj}명`}</span>`).join("");
+  $("track").innerHTML = items ? items + items : "<span>최근 게시된 중대재해가 없습니다</span>";
+}
+
+/* ---------- 사이드 패널 ---------- */
+function renderSide(){
+  const sd = curSido(), sg = curSgg(), all = inRange();
+  const list = all.filter(x => (!sd || x.region === sd) && (!sg || sggMatch(x.sigungu, sg)));
+  const label = {1:"오늘",7:"최근 7일",30:"최근 30일"}[range];
+  $("sideEyebrow").textContent = `${placeName()} · ${label}`;
+  $("sideTitle").textContent = sg || (sd ? FULL[sd] : "전국");
+  let sub;
+  if (level === "sido"){
+    const unk = all.filter(x => x.region === sd && !provs.some(p => sggMatch(x.sigungu, p.name))).length;
+    sub = sg ? `${FULL[sd]} · 한 번 더 누르거나 '상세 보기'로 사고 내용을 확인하세요.` : `시군구를 눌러 선택하세요.${unk ? ` 시군구 미상 ${unk}건은 목록에만 표시됩니다.` : ""}`;
+  } else sub = sd ? "한 번 더 누르면 시군구 지도로 들어갑니다. '상세 보기'로 사고 내용을 바로 볼 수도 있습니다." : "지도에서 시·도를 선택하세요.";
+  $("sideSub").textContent = sub;
+  $("btnDetail").hidden = !sd;
+  $("sCnt").textContent = list.length;
+  $("sDead").textContent = list.reduce((s,x)=>s+x.dead,0);
+  $("sInj").textContent = list.reduce((s,x)=>s+x.inj,0);
+  const tc = {}; list.forEach(x => tc[x.type] = (tc[x.type]||0)+1);
+  const tops = Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,4), mx = tops.length ? tops[0][1] : 1;
+  $("sBars").innerHTML = tops.map(([k,v]) => `<div class="bar"><span>${esc(k)}</span><span class="t"><i style="width:${v/mx*100}%"></i></span><b>${v}</b></div>`).join("");
+  $("sList").innerHTML = list.length ? list.map(x => `
+    <button type="button" class="inc" data-id="${x.id}">
+      <span class="sev ${x.dead?"dead":""}"></span>
+      <span><span class="meta"><span>${x.hasTime ? fmtD(x.when)+" "+fmtT(x.when) : fmtD(x.posted)}</span><span>${esc(x.region)} ${esc(x.sigungu)}</span></span>
+      <div class="ttl">${esc(x.ind || "업종 미상")} · ${esc(x.type || "유형 미상")} ${x.dead?`<span class="chip red">사망 ${x.dead}</span>`:`<span class="chip">부상 ${x.inj}</span>`}</div>
+      <div class="ov">${esc(x.text)}</div></span>
+    </button>`).join("") : `<div class="empty">${label} 동안 ${sd ? placeName()+"에서 " : ""}게시된 사고가 없습니다.</div>`;
+}
+$("sList").addEventListener("click", e => { const b = e.target.closest(".inc"); if (b) { const it = INCIDENTS.find(x=>x.id===b.dataset.id); openDrawer(it.region, b.dataset.id); }; });
+$("btnDetail").addEventListener("click", () => curSido() && openDrawer(curSido(), null, curSgg()));
+
+/* ---------- 상세 드로어 (중대재해 사이렌 콘텐츠) ---------- */
+let lastFocus = null;
+function openDrawer(region, focusId, sgg){
+  lastFocus = document.activeElement;
+  const list = inRange().filter(x => x.region === region && (!sgg || sggMatch(x.sigungu, sgg)));
+  $("drTitle").textContent = (FULL[region] || "지역 미상") + (sgg ? " " + sgg : "");
+  $("drSub").textContent = `${({1:"오늘",7:"최근 7일",30:"최근 30일"})[range]} 사고 ${list.length}건 · 사망 ${list.reduce((s,x)=>s+x.dead,0)}명`;
+  $("drBody").innerHTML = (list.length ? list.map(x => `
+    <article class="card" id="card-${x.id}">
+      <div class="row">${x.dead?`<span class="chip red">사망 ${x.dead}명</span>`:""}${x.inj?`<span class="chip">부상 ${x.inj}명</span>`:""}</div>
+      <h4>${esc(title(x))}</h4>
+      <dl class="kv"><dt>발생일시</dt><dd>${x.hasTime ? fmtD(x.when)+" "+fmtT(x.when) : x.hasDate ? fmtD(x.when) : "-"}</dd><dt>게시일</dt><dd>${fmtD(x.posted)}</dd><dt>발생지역</dt><dd>${esc(FULL[x.region] || "미상")} ${esc(x.sigungu)}</dd><dt>업종</dt><dd>${esc(x.ind || "-")}</dd><dt>재해유형</dt><dd>${esc(x.type || "-")}</dd><dt>사고개요</dt><dd>${esc(x.text)}</dd></dl>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><a class="btn" href="${esc(x.url || SIREN)}" target="_blank" rel="noopener">사이렌 원문 보기 ↗</a>${x.sid ? `<span style="font-family:var(--f-mono);font-size:11px;color:var(--muted)">고유번호 ${esc(x.sid)}</span>` : ""}</div>
+    </article>`).join("") : `<div class="empty">게시된 사고가 없습니다.</div>`)
+    + `<a class="btn amber" href="#quote" id="drQuote">우리 회사 중대재해 대비 상담받기</a>`;
+  $("drawer").classList.add("on"); $("scrim").classList.add("on");
+  $("drQuote").addEventListener("click", closeDrawer);
+  setTimeout(() => { const c = focusId && $("card-"+focusId); if (c) c.scrollIntoView({block:"start"}); $("drClose").focus(); }, 30);
+}
+function closeDrawer(){ $("drawer").classList.remove("on"); $("scrim").classList.remove("on"); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+$("drClose").addEventListener("click", closeDrawer);
+$("scrim").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("drawer").classList.contains("on")) closeDrawer(); });
+
+/* ---------- 3D 지도 (Canvas 2.5D 압출) ---------- */
+const stage = $("stage"), cv = $("map"), ctx = cv.getContext("2d"), tip = $("tip");
+let W = 0, H = 0, DPR = 1, provs = [], yaw = -0.12, pitch = 0.92, spin = false, hover = null;
+const cache = document.createElement("canvas"), cctx = cache.getContext("2d");
+let dirty = true;
+
+let NATION = [];
+// raw: [{name, polys}] → 화면 도형. flip: y축 뒤집기 여부(null이면 자동)
+function buildShapes(raw, flipHint, tol){
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  raw.forEach(r => r.polys.forEach(p => p.forEach(ring => ring.forEach(([x,y]) => { if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; }))));
+  const lonlat = minX > 120 && maxX < 135 && minY > 30 && maxY < 42;
+  const kx = lonlat ? Math.cos(((minY+maxY)/2) * Math.PI/180) : 1;
+  const flip = lonlat ? true : (flipHint == null ? true : flipHint);
+  const cx0 = (minX+maxX)/2, cy0 = (minY+maxY)/2, span = Math.max((maxX-minX)*kx, maxY-minY) || 1;
+  const norm = ([x,y]) => [((x-cx0)*kx)/span, (flip ? -(y-cy0) : (y-cy0))/span];
+  const out = raw.map(r => {
+    const rings = []; const big = biggest(r.polys);
+    r.polys.forEach(poly => poly.forEach((ring, i) => {
+      const pts = simplify(ring.map(norm), tol);
+      if (pts.length < 3) return;
+      const area = ringArea(pts);
+      if (i === 0 && Math.abs(area) < 0.000004 && poly !== big) return; // 아주 작은 섬 제거 (지역의 가장 큰 땅은 유지)
+      rings.push({ pts, hole: i > 0, area });
+    }));
+    const outerArea = rings.filter(q=>!q.hole).reduce((t,q)=>t+Math.abs(q.area),0);
+    return { name: r.name, rings, lift: 0, target: 0, anchor: [0,0], areaN: outerArea };
+  }).filter(p => p.rings.some(r => !r.hole));
+  out.forEach(p => p.anchor = visualCenter(p));
+  // 정규화 좌표 ↔ 경위도 변환 정보 (지형 색 계산용)
+  out.meta = { lonlat, cx0, cy0, span, kx, flip };
+  return out;
+}
+/* ---------- 지형 색 (표현용 근사: 주요 산줄기 위치로 고도를 흉내 냄, 실제 표고 아님) ---------- */
+const RIDGES = [
+  // [고도, 폭(도), 경위도 꺾은선]
+  [1.0, 0.30, [[128.45,38.30],[128.47,38.12],[128.62,37.80],[128.80,37.45],[128.92,37.10],[128.47,36.95],[128.10,36.75],[127.87,36.54],[127.85,36.15],[127.75,35.86],[127.73,35.34]]], // 백두대간
+  [0.62, 0.20, [[129.05,37.20],[129.10,36.75],[129.15,36.40],[129.05,36.00],[129.00,35.60],[129.05,35.25]]],                                                      // 낙동정맥
+  [0.38, 0.20, [[127.55,37.45],[127.20,37.05],[126.85,36.55]]],                                                                                               // 차령
+  [0.40, 0.22, [[127.60,35.85],[127.10,35.55],[126.75,35.20]]],                                                                                               // 노령
+  [0.45, 0.25, [[128.20,35.55],[127.95,35.25],[128.55,35.75]]],                                                                                               // 가야·영남 내륙
+  [0.95, 0.16, [[126.53,33.36],[126.53,33.37]]],                                                                                                              // 한라산
+];
+function segDist(px, py, ax, ay, bx, by){ const vx=bx-ax, vy=by-ay, l2=vx*vx+vy*vy||1e-12; let t=((px-ax)*vx+(py-ay)*vy)/l2; t=t<0?0:t>1?1:t; const dx=px-ax-t*vx, dy=py-ay-t*vy; return Math.sqrt(dx*dx+dy*dy); }
+function hash2(x, y){ let h = x*374761393 + y*668265263; h = (h^(h>>>13))*1274126177; return ((h^(h>>>16))>>>0) / 4294967295; }
+function vnoise(x, y){ const xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi; const u=xf*xf*(3-2*xf), v=yf*yf*(3-2*yf);
+  const a=hash2(xi,yi), b=hash2(xi+1,yi), c=hash2(xi,yi+1), d=hash2(xi+1,yi+1); return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v; }
+function fbm(x, y){ let s=0, a=0.5, f=1; for(let o=0;o<5;o++){ s+=a*vnoise(x*f,y*f); f*=2.03; a*=0.5; } return s; }
+const HYPSO = [[0.00,[134,174,116]],[0.22,[163,186,124]],[0.40,[185,189,134]],[0.58,[179,154,110]],[0.76,[142,123,102]],[0.92,[176,168,158]],[1.00,[236,231,222]]];
+function hypso(e){ for(let i=1;i<HYPSO.length;i++){ if(e<=HYPSO[i][0]){ const [e0,c0]=HYPSO[i-1],[e1,c1]=HYPSO[i]; const t=(e-e0)/(e1-e0); return [c0[0]+(c1[0]-c0[0])*t, c0[1]+(c1[1]-c0[1])*t, c0[2]+(c1[2]-c0[2])*t]; } } return HYPSO[HYPSO.length-1][1]; }
+const TEX_D0 = -0.56, TEX_D1 = 0.56;
+// 큰 계산을 잘게 나눠(한 번에 약 12ms) 화면이 멈추지 않게 만든다
+async function makeTerrain(meta, N){
+  const cvs = document.createElement("canvas"); cvs.width = cvs.height = N;
+  const g = cvs.getContext("2d"), img = g.createImageData(N, N), E = new Float32Array(N*N), k = (TEX_D1-TEX_D0)/N;
+  const toLL = (x, y) => meta.lonlat ? [x*meta.span/meta.kx + meta.cx0, meta.cy0 - y*meta.span] : null;
+  const pause = () => new Promise(r => setTimeout(r, 0));
+  let t0 = performance.now();
+  for (let j=0;j<N;j++){
+    for (let i=0;i<N;i++){
+      const x = TEX_D0 + (i+.5)*k, y = TEX_D0 + (j+.5)*k, ll = toLL(x, y);
+      let e;
+      if (ll){
+        const lo = ll[0], la = ll[1], cl = Math.cos(la*Math.PI/180);
+        e = 0.04 + 0.10*Math.max(0, lo-126.8);                 // 동고서저
+        for (const [h, w, line] of RIDGES){ let d = 9;
+          for (let q=0;q<line.length-1;q++){ const dd = segDist(lo*cl, la, line[q][0]*cl, line[q][1], line[q+1][0]*cl, line[q+1][1]); if (dd<d) d=dd; }
+          if (d < w*3) e = Math.max(e, h*Math.exp(-(d*d)/(w*w))); }
+        e = e*0.82 + (fbm(lo*3.1, la*3.1)-0.5)*0.34 + (fbm(lo*11, la*11)-0.5)*0.10;
+      } else e = 0.25 + (fbm(x*9, y*9)-0.5)*0.9;              // 경위도가 아닌 경계 파일: 질감만
+      E[j*N+i] = e < 0 ? 0 : e > 1 ? 1 : e;
+    }
+    if (performance.now() - t0 > 12){ await pause(); t0 = performance.now(); }
+  }
+  const L3 = [-0.55, -0.62, 0.56], zs = 26/N*512;              // 북서쪽 빛
+  for (let j=0;j<N;j++){
+    for (let i=0;i<N;i++){
+      const id = j*N+i, e = E[id];
+      const ex = (E[j*N+Math.min(N-1,i+1)] - E[j*N+Math.max(0,i-1)])*zs, ey = (E[Math.min(N-1,j+1)*N+i] - E[Math.max(0,j-1)*N+i])*zs;
+      const nl = Math.hypot(ex, ey, 1), sh = Math.max(0.55, Math.min(1.18, 0.62 + 0.62*((-ex*L3[0] - ey*L3[1] + L3[2]) / nl)));
+      const c = hypso(e);
+      img.data[id*4] = Math.min(255, c[0]*sh); img.data[id*4+1] = Math.min(255, c[1]*sh); img.data[id*4+2] = Math.min(255, c[2]*sh); img.data[id*4+3] = 255;
+    }
+    if (performance.now() - t0 > 12){ await pause(); t0 = performance.now(); }
+  }
+  g.putImageData(img, 0, 0);
+  return cvs;
+}
+// 지형 색은 첫 화면을 먼저 그린 뒤 따로 계산해서 입힌다 (느린 휴대폰에서도 지도가 바로 뜨게)
+function terrainFor(shapes){
+  if (!shapes.meta) return null;
+  if (shapes.tex === undefined){
+    shapes.tex = null;
+    const small = W < 600;
+    setTimeout(() => makeTerrain(shapes.meta, shapes === NATION ? (small ? 560 : 900) : (small ? 480 : 720))
+      .then(t => { shapes.tex = t; dirty = true; }).catch(() => { shapes.tex = null; }), 30);
+  }
+  return shapes.tex;
+}
+function loadGeo(){
+  const m = window.Highcharts && Highcharts.maps && Highcharts.maps["countries/kr/kr-all"];
+  if (!m || !m.features) return false;
+  const raw = [];
+  m.features.forEach(f => {
+    const nm = f.properties && (f.properties.name || f.properties.CTP_KOR_NM || f.properties.SIDO_NM); const ko = NAME_KO[nm] || KO_ALIAS[nm];
+    if (!ko || !f.geometry) return;
+    raw.push({ name: ko, polys: f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates });
+  });
+  if (raw.length < 15) return false;
+  // Highcharts 투영좌표는 y 방향이 파일마다 달라 서울이 부산보다 위에 오도록 맞춤
+  const cy = name => { const r = raw.find(q=>q.name===name); let t=0,n=0; r.polys[0][0].forEach(p=>{t+=p[1];n++}); return t/n; };
+  NATION = buildShapes(raw, cy("서울") > cy("부산"), 0.0016);
+  provs = NATION;
+  return true;
+}
+/* 시군구 경계: 처음 시도를 펼칠 때 한 번만 내려받음 */
+let SGG = null, sggLoading = null;
+function loadSgg(){
+  if (SGG) return Promise.resolve(SGG);
+  if (sggLoading) return sggLoading;
+  sggLoading = new Promise(resolve => {
+    const done = () => { const m = Highcharts.maps["countries/kr/kr-sigungu"]; SGG = m && m.features ? m.features : []; resolve(SGG); };
+    if (Highcharts.maps["countries/kr/kr-sigungu"]) return done();
+    const sc = document.createElement("script"); sc.src = "geo/kr-sigungu.js"; sc.async = true;
+    sc.onload = done; sc.onerror = () => { SGG = []; resolve(SGG); };
+    document.head.appendChild(sc);
+  });
+  return sggLoading;
+}
+const sggCache = {};
+function sggShapes(sido){
+  if (sggCache[sido]) return sggCache[sido];
+  const raw = (SGG || []).filter(f => f.properties && (f.properties.sido === sido || KO_ALIAS[f.properties.sido] === sido) && f.geometry)
+    .map(f => ({ name: f.properties.name, polys: f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates }));
+  return (sggCache[sido] = raw.length ? buildShapes(raw, true, 0.0022) : []);
+}
+function biggest(polys){ let b=polys[0], ba=-1; polys.forEach(pl => { let a=0; const r=pl[0]; for(let i=0;i<r.length;i++){const q=r[(i+1)%r.length]; a+=r[i][0]*q[1]-q[0]*r[i][1];} a=Math.abs(a); if(a>ba){ba=a;b=pl;} }); return b; }
+function ringArea(p){ let a=0; for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length]; a+=p[i][0]*q[1]-q[0]*p[i][1];} return a/2; }
+function simplify(pts, tol){
+  if (pts.length < 8) return pts;
+  const keep = new Uint8Array(pts.length); keep[0]=keep[pts.length-1]=1;
+  const stack=[[0,pts.length-1]];
+  while(stack.length){ const [a,b]=stack.pop(); let md=0,mi=-1; const [ax,ay]=pts[a],[bx,by]=pts[b]; const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1e-9;
+    for(let i=a+1;i<b;i++){ const d=Math.abs(dy*pts[i][0]-dx*pts[i][1]+bx*ay-by*ax)/L; if(d>md){md=d;mi=i;} }
+    if(md>tol&&mi>0){keep[mi]=1;stack.push([a,mi],[mi,b]);} }
+  const out = pts.filter((_,i)=>keep[i]);
+  if (out.length>1 && out[0][0]===out[out.length-1][0] && out[0][1]===out[out.length-1][1]) out.pop();
+  return out;
+}
+function inside(pt, p){ let c=false; for (const r of p.rings){ const a=r.pts; for(let i=0,j=a.length-1;i<a.length;j=i++){ if(((a[i][1]>pt[1])!==(a[j][1]>pt[1])) && (pt[0] < (a[j][0]-a[i][0])*(pt[1]-a[i][1])/(a[j][1]-a[i][1])+a[i][0])) c=!c; } } return c; }
+function visualCenter(p){
+  const main = p.rings.filter(r=>!r.hole).sort((a,b)=>Math.abs(b.area)-Math.abs(a.area))[0];
+  let mnx=Infinity,mny=Infinity,mxx=-Infinity,mxy=-Infinity; main.pts.forEach(([x,y])=>{mnx=Math.min(mnx,x);mxx=Math.max(mxx,x);mny=Math.min(mny,y);mxy=Math.max(mxy,y);});
+  let best=null,bd=-1; const N=22;
+  for(let i=1;i<N;i++)for(let j=1;j<N;j++){ const pt=[mnx+(mxx-mnx)*i/N, mny+(mxy-mny)*j/N]; if(!inside(pt,p)) continue;
+    let d=Infinity; for(const r of p.rings){const a=r.pts; for(let k=0;k<a.length;k++){const q=a[(k+1)%a.length],s=a[k]; const vx=q[0]-s[0],vy=q[1]-s[1],l2=vx*vx+vy*vy||1e-12; let t=((pt[0]-s[0])*vx+(pt[1]-s[1])*vy)/l2; t=Math.max(0,Math.min(1,t)); d=Math.min(d,Math.hypot(pt[0]-s[0]-t*vx,pt[1]-s[1]-t*vy));}}
+    if(d>bd){bd=d;best=pt;} }
+  return best || main.pts[0];
+}
+
+let S = 1, CX = 0, CY = 0;
+const BASE_H = 0.016, LIFT_H = 0.075;
+function proj(x, y, z){ const c=Math.cos(yaw), s=Math.sin(yaw); const xr=x*c-y*s, yr=x*s+y*c; return [CX+xr*S, CY+yr*S*Math.cos(pitch)-z*S*Math.sin(pitch), yr]; }
+function resize(){
+  const r = stage.getBoundingClientRect(); DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = r.width; H = r.height;
+  cv.width = cache.width = Math.round(W*DPR); cv.height = cache.height = Math.round(H*DPR);
+  S = Math.min(W * 0.92, (H - 120) / (Math.cos(pitch) + 0.12)) ;
+  CX = W/2; CY = H/2 - 4;
+  dirty = true;
+}
+function shade(hex, f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255,b=n&255; r=Math.round(Math.min(255,r*f));g=Math.round(Math.min(255,g*f));b=Math.round(Math.min(255,b*f)); return `rgb(${r},${g},${b})`; }
+const CSSV = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let COL = {};
+function readColors(){ COL = { land: CSSV("--land")||"#2A4258", hi: CSSV("--land-hi")||"#3A5C78", sel: CSSV("--land-sel")||"#E8A100", wall: CSSV("--wall")||"#16283A" }; }
+const L = (() => { const v=[-0.45,0.9]; const m=Math.hypot(...v); return [v[0]/m, v[1]/m]; })();
+
+function counts(){
+  const c = {}, add = (k, x) => { const o = c[k] || (c[k] = {n:0,dead:0}); o.n++; o.dead += x.dead; };
+  if (level === "sido"){
+    inRange().forEach(x => { if (x.region !== drillSido) return;
+      const hit = provs.find(p => normS(p.name) === normS(x.sigungu)) || provs.find(p => sggMatch(x.sigungu, p.name));
+      if (hit) add(hit.name, x); });
+  } else inRange().forEach(x => x.region && add(x.region, x));
+  return c;
+}
+let CNT = {};
+
+function drawMap(){
+  const g = cctx; g.setTransform(DPR,0,0,DPR,0,0); g.clearRect(0,0,W,H);
+  // 바닥 그림자
+  g.save(); g.filter = "blur(16px)"; g.fillStyle = "rgba(18,52,82,.38)";
+  provs.forEach(p => p.rings.forEach(r => { if (r.hole) return; g.beginPath(); r.pts.forEach((pt,i)=>{ const [X,Y]=proj(pt[0]+.012,pt[1]+.03,0); i?g.lineTo(X,Y):g.moveTo(X,Y); }); g.closePath(); g.fill(); }));
+  g.restore(); g.filter = "none";
+  const order = provs.map(p => ({ p, d: proj(p.anchor[0], p.anchor[1], 0)[2] })).sort((a,b)=>a.d-b.d).map(o=>o.p);
+  // 솟아오른 지역은 맨 위에 그림
+  order.sort((a,b) => (a.lift>0.001) - (b.lift>0.001));
+  const c=Math.cos(yaw), s=Math.sin(yaw), tex = terrainFor(provs);
+  for (const p of order){
+    const top = BASE_H + p.lift * LIFT_H;
+    const isSel = p.name === selected, isHov = p.name === hover;
+    const topCol = isSel ? "#E8B54A" : "#A9B784";
+    // 벽면
+    const walls = [];
+    p.rings.forEach(r => { const a = r.pts, sign = (r.area > 0) !== r.hole ? 1 : -1;
+      for (let i=0;i<a.length;i++){ const q=a[(i+1)%a.length], pt=a[i];
+        let dx=q[0]-pt[0], dy=q[1]-pt[1]; let nx = sign*dy, ny = -sign*dx; // 바깥쪽 법선
+        const nyr = nx*s + ny*c; if (nyr <= 0) continue;
+        const nxr = nx*c - ny*s; const m=Math.hypot(nxr,nyr)||1;
+        const lam = Math.max(0, (nxr/m)*L[0] + (nyr/m)*L[1]);
+        const b0=proj(pt[0],pt[1],0), b1=proj(q[0],q[1],0), t0=proj(pt[0],pt[1],top), t1=proj(q[0],q[1],top);
+        walls.push([ (b0[2]+b1[2])/2, b0,b1,t1,t0, lam ]); } });
+    walls.sort((a,b)=>a[0]-b[0]);
+    const wb = isSel ? "#9A6A2C" : "#7A644B";
+    for (const w of walls){ g.beginPath(); g.moveTo(w[1][0],w[1][1]); g.lineTo(w[2][0],w[2][1]); g.lineTo(w[3][0],w[3][1]); g.lineTo(w[4][0],w[4][1]); g.closePath(); g.fillStyle = shade(wb, 0.72 + w[5]*0.55); g.fill(); }
+    // 윗면
+    const path = new Path2D();
+    p.rings.forEach(r => { r.pts.forEach((pt,i)=>{ const [X,Y]=proj(pt[0],pt[1],top); i?path.lineTo(X,Y):path.moveTo(X,Y); }); path.closePath(); });
+    p.path = path;
+    if (p.lift > 0.001){ const bp = new Path2D(); p.rings.forEach(r => { r.pts.forEach((pt,i)=>{ const [X,Y]=proj(pt[0],pt[1],0); i?bp.lineTo(X,Y):bp.moveTo(X,Y); }); bp.closePath(); }); p.basePath = bp; } else p.basePath = null;
+    if (tex){
+      // 지형 텍스처를 이 지역 윗면 모양으로 오려서 같은 투영(회전·기울기·높이)으로 그림
+      const cp = Math.cos(pitch), k = (TEX_D1-TEX_D0)/tex.width;
+      const A00 = S*c, A01 = -S*s, A10 = S*cp*s, A11 = S*cp*c, tX = CX, tY = CY - top*S*Math.sin(pitch);
+      g.save(); g.clip(path, "evenodd");
+      g.setTransform(DPR*A00*k, DPR*A10*k, DPR*A01*k, DPR*A11*k, DPR*(A00*TEX_D0 + A01*TEX_D0 + tX), DPR*(A10*TEX_D0 + A11*TEX_D0 + tY));
+      g.imageSmoothingEnabled = true; g.drawImage(tex, 0, 0);
+      g.restore();
+      if (isSel){ g.fillStyle = "rgba(240,170,20,.30)"; g.fill(path, "evenodd"); }
+      else if (isHov){ g.fillStyle = "rgba(255,255,255,.22)"; g.fill(path, "evenodd"); }
+    } else {
+      const grad = g.createLinearGradient(0, CY - S*0.5, 0, CY + S*0.5);
+      grad.addColorStop(0, shade(topCol, 1.08)); grad.addColorStop(1, shade(topCol, 0.92));
+      g.fillStyle = grad; g.fill(path, "evenodd");
+      if (isHov && !isSel){ g.fillStyle = "rgba(255,255,255,.22)"; g.fill(path, "evenodd"); }
+    }
+    g.lineJoin = "round"; g.lineWidth = isSel ? 2 : 0.9; g.strokeStyle = isSel ? "#7A4E00" : "rgba(70,58,44,.55)"; g.stroke(path);
+    // 지역명
+    const [ax, ay] = proj(p.anchor[0], p.anchor[1], top);
+    p.screen = [ax, ay];
+    if (level === "sido" && !isSel && !isHov && p.areaN * S * S < 900) continue;
+    g.font = `${isSel?700:600} ${isSel?14:(level === "sido" ? 11 : 12)}px "IBM Plex Sans KR", "Malgun Gothic", sans-serif`;
+    g.textAlign = "center"; g.textBaseline = "top";
+    g.lineWidth = 3.2; g.strokeStyle = isSel ? "rgba(255,244,214,.95)" : "rgba(255,255,255,.88)"; g.strokeText(p.name, ax, ay + 7);
+    g.fillStyle = isSel ? "#2A1A00" : "#1F2A33"; g.fillText(p.name, ax, ay + 7);
+  }
+  dirty = false;
+}
+function mix(a, b, t){ const A=parseInt(a.slice(1),16), B=parseInt(b.slice(1),16); const f=(sh)=>Math.round(((A>>sh)&255)*(1-t)+((B>>sh)&255)*t); return "#"+[16,8,0].map(sh=>f(sh).toString(16).padStart(2,"0")).join(""); }
+
+let tPrev = 0, ph = 0;
+function frame(t){
+  const dt = Math.min(50, t - (tPrev || t)); tPrev = t;
+  let moving = false;
+  provs.forEach(p => { const d = p.target - p.lift; if (Math.abs(d) > 0.002){ p.lift += d * Math.min(1, dt/140); moving = true; } else p.lift = p.target; });
+  if (spin && !dragging){ yaw += dt * 0.00012; moving = true; }
+  if (moving) dirty = true;
+  if (dirty) drawMap();
+  ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height); ctx.drawImage(cache,0,0);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ph = reduced ? 0.5 : (t/1000) % 1;
+  drawBeacons();
+  requestAnimationFrame(frame);
+}
+function drawBeacons(){
+  const items = provs.filter(p => CNT[p.name] && p.screen).sort((a,b)=>a.screen[1]-b.screen[1]);
+  for (const p of items){
+    const c = CNT[p.name], [x, y] = p.screen, h = 16 + Math.min(c.n, 12) * 7 + (p.name===selected ? 10 : 0);
+    const col = c.dead ? "#FF5A4A" : "#F5B82E";
+    // 펄스
+    ctx.beginPath(); ctx.ellipse(x, y, 6 + ph*16, (6 + ph*16)*Math.cos(pitch)*1.1, 0, 0, Math.PI*2);
+    ctx.strokeStyle = hexA(col, 0.7*(1-ph)); ctx.lineWidth = 1.5; ctx.stroke();
+    // 빛기둥
+    const gr = ctx.createLinearGradient(0, y - h, 0, y); gr.addColorStop(0, hexA(col, 0.0)); gr.addColorStop(1, hexA(col, 0.95));
+    ctx.fillStyle = gr; ctx.fillRect(x - 2, y - h, 4, h);
+    ctx.beginPath(); ctx.ellipse(x, y, 4.5, 4.5*Math.cos(pitch)*1.2, 0, 0, Math.PI*2); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(40,20,0,.55)"; ctx.stroke();
+    // 건수 배지
+    const label = String(c.n); ctx.font = `600 12px "IBM Plex Mono", ui-monospace, monospace`;
+    const tw = ctx.measureText(label).width + 12, bx = x - tw/2, by = y - h - 20;
+    ctx.fillStyle = col; roundRect(ctx, bx, by, tw, 18, 9); ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(40,20,0,.45)"; ctx.stroke();
+    ctx.fillStyle = "#14140F"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, x, by + 9.5);
+  }
+}
+function roundRect(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function hexA(h,a){ const n=parseInt(h.slice(1),16); return `rgba(${n>>16},${n>>8&255},${n&255},${a})`; }
+
+// isPointInPath는 변환 행렬을 적용하므로 CSS 픽셀 좌표로 비교
+function hitTest(mx,my){ cctx.save(); cctx.setTransform(DPR,0,0,DPR,0,0); let found=null;
+  const order = provs.slice().sort((a,b)=>((b.lift>0.001)-(a.lift>0.001)) || (proj(b.anchor[0],b.anchor[1],0)[2]-proj(a.anchor[0],a.anchor[1],0)[2]));
+  for (const p of order){ if ((p.path && cctx.isPointInPath(p.path, mx*DPR, my*DPR, "evenodd")) || (p.basePath && cctx.isPointInPath(p.basePath, mx*DPR, my*DPR, "evenodd"))) { found=p; break; } }
+  cctx.restore(); return found; }
+
+let dragging = false, downX = 0, downY = 0, downYaw = 0, moved = false;
+cv.addEventListener("pointerdown", e => { downX = e.clientX; downY = e.clientY; downYaw = yaw; moved = false; dragging = true; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", e => {
+  const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  if (dragging && (e.buttons & 1)){ const dx = e.clientX - downX; if (Math.abs(dx) > 5 || Math.abs(e.clientY-downY) > 5) moved = true;
+    if (moved){ yaw = downYaw + dx * 0.006; dirty = true; cv.classList.add("dragging"); tip.style.opacity = 0; return; } }
+  const p = hitTest(mx, my), name = p ? p.name : null;
+  if (name !== hover){ hover = name; dirty = true; }
+  cv.classList.toggle("pointer", !!p);
+  if (p){ const c = CNT[p.name]; tip.innerHTML = `<b>${esc(level === "sido" ? p.name : FULL[p.name])}</b> · ${c ? `사고 ${c.n}건 · 사망 ${c.dead}명` : "게시된 사고 없음"}`; tip.style.left = mx+"px"; tip.style.top = my+"px"; tip.style.opacity = 1; }
+  else tip.style.opacity = 0;
+});
+cv.addEventListener("pointerup", e => { dragging = false; cv.classList.remove("dragging");
+  if (moved) return;
+  const r = cv.getBoundingClientRect(), p = hitTest(e.clientX - r.left, e.clientY - r.top);
+  if (!p){ return; }
+  if (selected !== p.name) return choose(p.name);
+  if (level === "sido") openDrawer(drillSido, null, p.name); else drillInto(p.name);
+});
+cv.addEventListener("pointerleave", () => { if (hover){ hover = null; dirty = true; } tip.style.opacity = 0; });
+// 키보드: 지도에 포커스 후 화살표로 지역 이동, Enter로 상세
+cv.tabIndex = 0;
+const KEY_ORDER = ["서울","인천","경기","강원","충북","충남","세종","대전","전북","광주","전남","경북","대구","울산","부산","경남","제주"];
+cv.addEventListener("keydown", e => {
+  if (!provs.length) return;
+  const order = level === "sido" ? provs.map(p => p.name).sort((a,b)=>a.localeCompare(b,"ko")) : KEY_ORDER;
+  let i = order.indexOf(selected);
+  if (e.key === "ArrowRight" || e.key === "ArrowDown"){ e.preventDefault(); choose(order[(i+1)%order.length]); }
+  else if (e.key === "ArrowLeft" || e.key === "ArrowUp"){ e.preventDefault(); choose(order[(i-1+order.length)%order.length]); }
+  else if (e.key === "Enter" && selected){ e.preventDefault(); if (level === "sido") openDrawer(drillSido, null, selected); else drillInto(selected); }
+  else if (e.key === "Escape" || e.key === "Backspace"){ e.preventDefault(); if (level === "sido") backToNation(); else reset(); }
+});
+
+function choose(name){ selected = name; provs.forEach(p => p.target = p.name === name ? 1 : 0); dirty = true; renderSide(); }
+function reset(){ selected = null; provs.forEach(p => p.target = 0); dirty = true; renderSide(); }
+function swapLayer(shapes, after){
+  cv.classList.add("fading"); tip.style.opacity = 0;
+  setTimeout(() => { provs = shapes; hover = null; after(); CNT = counts(); dirty = true; renderSide(); cv.classList.remove("fading"); }, reduced ? 0 : 200);
+}
+async function drillInto(sido){
+  $("hint").textContent = "시군구 지도를 불러오는 중…";
+  await loadSgg();
+  const shapes = sggShapes(sido);
+  if (!shapes.length){ $("hint").textContent = "시군구 경계 데이터가 없어 상세 목록을 엽니다."; openDrawer(sido); return; }
+  swapLayer(shapes, () => {
+    level = "sido"; drillSido = sido; selected = null;
+    $("btnBack").hidden = false; $("crumb").hidden = false; $("crumb").textContent = FULL[sido];
+    $("hint").textContent = "시군구를 눌러 선택 · 한 번 더 누르면 상세 보기 · ← 전국으로 돌아가기";
+    cv.setAttribute("aria-label", `${FULL[sido]} 시군구별 중대재해 3D 지도`);
+  });
+}
+function backToNation(){
+  const sido = drillSido;
+  swapLayer(NATION, () => {
+    level = "nation"; drillSido = null; selected = sido;
+    NATION.forEach(p => { p.target = p.name === sido ? 1 : 0; p.lift = p.target; });
+    $("btnBack").hidden = true; $("crumb").hidden = true;
+    $("hint").textContent = "시·도를 눌러 선택 · 한 번 더 누르면 시군구로 들어가기 · 드래그로 회전";
+    cv.setAttribute("aria-label", "대한민국 시도별 중대재해 3D 지도");
+  });
+}
+$("btnBack").addEventListener("click", backToNation);
+$("btnReset").addEventListener("click", () => {
+  yaw = -0.12;
+  if (level === "sido"){ swapLayer(NATION, () => { level = "nation"; drillSido = null; selected = null; NATION.forEach(p => { p.target = 0; p.lift = 0; });
+    $("btnBack").hidden = true; $("crumb").hidden = true; $("hint").textContent = "시·도를 눌러 선택 · 한 번 더 누르면 시군구로 들어가기 · 드래그로 회전"; }); }
+  else { reset(); dirty = true; }
+});
+$("btnSpin").addEventListener("click", e => { spin = !spin; e.currentTarget.textContent = spin ? "회전 멈춤" : "회전"; });
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  range = +b.dataset.range; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b)); CNT = counts(); dirty = true; renderSide();
+}));
+new ResizeObserver(resize).observe(stage);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); dirty = true; });
+
+readColors();
+if (window.JDMAP_GEO_SOURCE) $("geoCredit").textContent = "지도 경계: " + window.JDMAP_GEO_SOURCE;
+else if (Highcharts.maps["countries/kr/kr-all"]) $("geoCredit").textContent = "지도 경계: Highcharts Map Collection";
+if (loadGeo()){ resize(); requestAnimationFrame(frame); }
+else { $("mapErr").hidden = false; $("mapErr").textContent = "지도 경계 데이터를 불러오지 못했습니다. 오른쪽 목록에서 사고를 확인할 수 있습니다."; $("hint").hidden = true; }
+loadIncidents();
+
+/* ---------- 견적 신청 ---------- */
+const form = $("qform");
+const onlyNum = s => s.replace(/\D/g, "");
+$("q_biz").addEventListener("input", e => { const d = onlyNum(e.target.value).slice(0,10); e.target.value = d.length > 5 ? `${d.slice(0,3)}-${d.slice(3,5)}-${d.slice(5)}` : d.length > 3 ? `${d.slice(0,3)}-${d.slice(3)}` : d; });
+$("q_tel").addEventListener("input", e => { const d = onlyNum(e.target.value).slice(0,11); e.target.value = d.startsWith("02") ? (d.length>9?`${d.slice(0,2)}-${d.slice(2,6)}-${d.slice(6)}`:d.length>5?`${d.slice(0,2)}-${d.slice(2,5)}-${d.slice(5)}`:d.length>2?`${d.slice(0,2)}-${d.slice(2)}`:d) : (d.length>7?`${d.slice(0,3)}-${d.slice(3,d.length===10?6:7)}-${d.slice(d.length===10?6:7)}`:d.length>3?`${d.slice(0,3)}-${d.slice(3)}`:d); });
+["q_emp"].forEach(id => $(id).addEventListener("input", e => e.target.value = onlyNum(e.target.value).slice(0,7)));
+["q_sales","q_pay"].forEach(id => $(id).addEventListener("input", e => e.target.value = e.target.value.replace(/[^\d.]/g,"").replace(/(\..*)\./g,"$1").slice(0,9)));
+function bizValid(v){ const d = onlyNum(v); if (d.length !== 10) return false; const w=[1,3,7,1,3,7,1,3,5]; let s=0; for(let i=0;i<9;i++) s += +d[i]*w[i]; s += Math.floor(+d[8]*5/10); return (10 - s%10)%10 === +d[9]; }
+function setErr(id, msg){ const box = $("e_"+id); box.textContent = msg || ""; const f = box.closest(".f"); if (f) f.classList.toggle("bad", !!msg); return !msg; }
+function validate(){
+  let ok = true;
+  const v = id => $( "q_"+id ).value.trim();
+  ok = setErr("biz", !v("biz") ? "사업자등록번호를 입력하세요." : !bizValid(v("biz")) ? "번호를 다시 확인하세요. 10자리 사업자등록번호 형식이 아닙니다." : "") && ok;
+  ok = setErr("corp", v("corp") ? "" : "회사명을 입력하세요.") && ok;
+  ok = setErr("ind", v("ind") ? "" : "업종을 선택하세요.") && ok;
+  ok = setErr("emp", !v("emp") ? "상시근로자 수를 입력하세요." : +v("emp") < 1 ? "1명 이상으로 입력하세요." : "") && ok;
+  ok = setErr("name", v("name") ? "" : "담당자명을 입력하세요.") && ok;
+  ok = setErr("tel", onlyNum(v("tel")).length >= 9 ? "" : "연락 가능한 전화번호를 입력하세요.") && ok;
+  ok = setErr("mail", !v("mail") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v("mail")) ? "" : "이메일 형식을 확인하세요.") && ok;
+  const ag = $("q_agree").checked; $("e_agree").textContent = ag ? "" : "개인정보 수집·이용에 동의해야 신청할 수 있습니다."; ok = ag && ok;
+  return ok;
+}
+const openedAt = Date.now();
+const CFG = window.JDMAP_CONFIG || {};
+if (CFG.operatorEmail) $("opContact").textContent = "문의 " + CFG.operatorEmail;
+if (!CFG.leadEndpoint){
+  $("qstatus").innerHTML = `<span style="color:var(--danger)">견적 접수 설정 전입니다.</span>${CFG.operatorEmail ? " " + esc(CFG.operatorEmail) + " 로 문의해 주세요." : ""}`;
+}
+const rid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!validate()){ const first = form.querySelector(".bad input, .bad select") || $("q_agree"); first.focus(); $("qstatus").textContent = ""; return; }
+  if (!CFG.leadEndpoint){ $("qstatus").textContent = "견적 접수 설정 전이라 신청을 보낼 수 없습니다. 사이트 운영자에게 문의해 주세요."; return; }
+  const data = { rid: rid(), biz: $("q_biz").value, corp: $("q_corp").value.trim(), ind: $("q_ind").value, emp: $("q_emp").value, sales: $("q_sales").value, pay: $("q_pay").value,
+    name: $("q_name").value.trim(), tel: $("q_tel").value, mail: $("q_mail").value.trim(), memo: $("q_memo").value.trim(), agree: $("q_agree").checked,
+    website: $("q_website").value, t: openedAt, page: location.href.split("#")[0] };
+  const btn = $("qsubmit"); btn.disabled = true; $("qstatus").textContent = "접수 중…";
+  const body = JSON.stringify(data);
+  try {
+    // text/plain 으로 보내야 구글 Apps Script 가 사전확인(preflight) 없이 받는다
+    const r = await fetch(CFG.leadEndpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, redirect: "follow" });
+    const j = await r.json().catch(() => null);
+    if (j && j.ok){ showDone(data); return; }
+    if (j && j.errors){ Object.entries(j.errors).forEach(([k,v]) => { if ($("e_"+k)) setErr(k, v); }); $("qstatus").textContent = j.message || "입력 내용을 확인해 주세요."; }
+    else $("qstatus").textContent = (j && j.message) || "접수하지 못했습니다. 잠시 뒤 다시 시도해 주세요.";
+  } catch(_){
+    // 응답을 읽을 수 없는 환경: 같은 접수번호(rid)로 한 번 더 보내고(중복은 시트에서 걸러짐) 접수로 안내
+    try { await fetch(CFG.leadEndpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body }); showDone(data); return; }
+    catch(__){ $("qstatus").textContent = "네트워크 오류로 접수하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요."; }
+  }
+  btn.disabled = false;
+});
+function showDone(d){
+  const rows = [["회사명",d.corp],["업종",d.ind],["상시근로자",d.emp+"명"],["담당자",d.name],["연락처",d.tel]];
+  $("formWrap").innerHTML = `<div class="done"><span class="chip ok">접수 완료</span><h3>견적 신청이 접수되었습니다</h3><p style="margin:0;color:var(--muted)">담당자가 영업일 기준 1~2일 내에 ${esc(d.tel)}로 연락드립니다.${CFG.operatorEmail ? " 급한 문의는 " + esc(CFG.operatorEmail) : ""}</p><dl>${rows.map(r=>`<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join("")}</dl><div><button type="button" class="btn" id="again">새로 작성하기</button></div></div>`;
+  $("again").addEventListener("click", () => location.reload());
+  $("formWrap").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+}
+})();
+</script>
+</body>
+</html>
