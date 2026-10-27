@@ -1,0 +1,42 @@
+# 하루 3번(07:30·12:30·18:30 KST) 사고 데이터를 갱신한다.
+# data/manual_incidents.csv, data/corrections.csv, data/siren_config.json 을 고치면 바로 다시 실행된다.
+name: 사고 데이터 갱신
+
+on:
+  schedule:
+    - cron: "30 22 * * *"   # 07:30 KST
+    - cron: "30 3 * * *"    # 12:30 KST
+    - cron: "30 9 * * *"    # 18:30 KST
+  workflow_dispatch:
+  push:
+    paths:
+      - "data/manual_incidents.csv"
+      - "data/corrections.csv"
+      - "data/siren_config.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests==2.32.3 beautifulsoup4==4.12.3
+      - name: 사고 데이터 만들기
+        run: python -m tools.build_incidents
+      - name: 바뀐 내용 저장
+        run: |
+          git config user.name "jdmap-bot"
+          git config user.email "jdmap-bot@users.noreply.github.com"
+          git add docs/data/incidents.js data/unmapped.csv
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          git commit -m "사고 데이터 갱신 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+          git push
