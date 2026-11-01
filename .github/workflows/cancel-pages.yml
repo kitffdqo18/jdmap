@@ -1,0 +1,29 @@
+# 멈춘 사이트 배포 취소 — 'pages build and deployment' 가 "Please cancel ○○○ first" 오류로 계속 실패할 때 직접 실행.
+# Actions 탭 → '멈춘 배포 취소' → Run workflow → 오류 문장의 ○○○(긴 영문·숫자) 붙여 넣기
+name: 멈춘 배포 취소
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_version:
+        description: "취소할 배포 번호 (오류 문장 'Please cancel ○○○ first' 의 ○○○)"
+        required: true
+        default: "6ba736ae408b34d7a25eff6ccb20d80ee526d70e"
+
+permissions:
+  pages: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 배포 취소
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ID: ${{ inputs.build_version }}
+        run: |
+          ID=$(printf '%s' "$ID" | tr -cd 'A-Za-z0-9')
+          echo "현재 상태:"; gh api "repos/$REPO/pages/deployments/$ID" || true
+          gh api -X POST "repos/$REPO/pages/deployments/$ID/cancel"
+          echo "취소 요청 완료. 이제 실패한 'pages build and deployment' 를 Re-run 하세요."
