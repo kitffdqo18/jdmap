@@ -29,7 +29,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests==2.32.3 beautifulsoup4==4.12.3
+      - name: 그림 글자 읽기(OCR) 준비
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-kor
+      - run: pip install requests==2.32.3 beautifulsoup4==4.12.3 pillow==11.1.0
       - name: 사고 데이터 만들기
         run: python -m tools.build_incidents
       - name: 바뀐 내용 저장
