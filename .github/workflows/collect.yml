@@ -42,3 +42,9 @@ jobs:
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "사고 데이터 갱신 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
           git push
+      - name: 수집 실패 알림
+           run: |
+             if [ -f siren_failed.txt ]; then
+               echo "사이렌 수집이 실패했습니다 (기존 데이터는 그대로 유지):"; cat siren_failed.txt
+               exit 1
+             fi
