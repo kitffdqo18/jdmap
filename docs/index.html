@@ -727,7 +727,7 @@ function ringArea(p){ let a=0; for(let i=0;i<p.length;i++){const q=p[(i+1)%p.len
 function simplify(pts, tol){
   if (pts.length < 8) return pts;
   const keep = new Uint8Array(pts.length); keep[0]=keep[pts.length-1]=1;
-  const stack=[[0,pts.length-1]];
+  let far=0, fd=-1; for(let i=1;i<pts.length;i++){ const d=Math.hypot(pts[i][0]-pts[0][0], pts[i][1]-pts[0][1]); if(d>fd){fd=d;far=i;} } keep[far]=1; const stack=[[0,far],[far,pts.length-1]];
   while(stack.length){ const [a,b]=stack.pop(); let md=0,mi=-1; const [ax,ay]=pts[a],[bx,by]=pts[b]; const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1e-9;
     for(let i=a+1;i<b;i++){ const d=Math.abs(dy*pts[i][0]-dx*pts[i][1]+bx*ay-by*ax)/L; if(d>md){md=d;mi=i;} }
     if(md>tol&&mi>0){keep[mi]=1;stack.push([a,mi],[mi,b]);} }
