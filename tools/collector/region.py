@@ -89,8 +89,8 @@ def extract_region(text):
             cand = after.group(1)
             if cand not in {"특별시", "광역시", "자치시"} and not cand.endswith("특별자치시"):
                 sgg = cand + (" " + after.group(2) if after.group(2) else "")
-        if sido == "세종":
-            sgg = sgg if sgg and sgg != "세종시" else "세종시"
+        if sido == "세종":  # 세종은 시군구가 없는 단층제 ('세종 장군면' 의 '장군'을 군으로 읽지 않게)
+            sgg = "세종시"
         return sido, sgg
     if "광주시" in text and "광주광역시" not in text:
         return "경기", "광주시"

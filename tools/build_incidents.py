@@ -108,6 +108,8 @@ def build(siren_items=None, manual_csv="", corrections=None, existing=None, keep
     items = {k: v for k, v in items.items() if v.get("source") != "csv"}
     for raw in siren_items or []:
         it = make_item("siren", raw)
+        if raw.get("ocr_v"):
+            it["ocr_v"] = raw["ocr_v"]
         items[it["sid"]] = it
     if manual_csv.strip():
         for raw in csv_import.parse(manual_csv):
@@ -166,13 +168,19 @@ def main(argv=None):
         cfg_path = os.path.join(data_dir, "siren_config.json")
         cfg = kosha_siren.load_config(cfg_path) if os.path.exists(cfg_path) else {}
         if cfg.get("enabled"):
-            known = {k[len("siren-"):] for k, v in read_existing().items() if v.get("source") == "siren"}
+            from collector import ocr
+            # 같은 읽기 방식(ocr 버전)으로 이미 읽은 게시물만 건너뛴다. 방식을 고치면 최근 게시물은 다시 읽는다.
+            known = {k[len("siren-"):] for k, v in read_existing().items()
+                     if v.get("source") == "siren" and (v.get("ocr_v") == ocr.VERSION or not cfg.get("ocr"))}
             try:
                 siren = kosha_siren.fetch(cfg, known=known)
-                print(f"사이렌 수집: 새 게시물 {len(siren)}건 (이미 있는 {len(known)}건은 건너뜀)")
+                print(f"사이렌 수집: 새로 읽은 게시물 {len(siren)}건 (이미 있는 {len(known)}건은 건너뜀)")
             except Exception as e:  # 사이트가 막히거나 바뀌어도 기존 데이터는 지킨다
                 print(f"사이렌 수집 실패 — 기존 데이터로 계속합니다: {type(e).__name__}: {e}")
                 siren = []
+                # 예약 실행이 마지막에 '실패'로 끝나게 표시 → GitHub 가 알림 메일을 보낸다
+                with open(os.path.join(ROOT, "siren_failed.txt"), "w", encoding="utf-8") as f:
+                    f.write(f"{type(e).__name__}: {e}\n")
         else:
             print("사이렌 수집 건너뜀: data/siren_config.json 의 enabled 가 false")
 

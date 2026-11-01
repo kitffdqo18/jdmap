@@ -67,7 +67,7 @@ def fetch_json(cfg, session=None, known=None):
     """known: 이미 수집해 둔 게시물 번호 집합 (그림 글자 읽기를 다시 하지 않으려고)."""
     s = session or _session(cfg)
     m = cfg["json"]
-    known = set(known or ())
+    known = set(known or ())  # 이미 같은 방식(ocr 버전)으로 읽은 게시물 번호
     if m.get("image") and cfg.get("ocr"):
         from .. import ocr
         if not ocr.available():
@@ -91,6 +91,10 @@ def fetch_json(cfg, session=None, known=None):
                 if not body:  # 다음 실행 때 다시 시도
                     print(f"  그림 글자 읽기 실패, 다음에 다시 시도: {sid} {dig(it, m.get('title', '')) or ''}")
                     continue
+                extra["ocr_v"] = ocr.VERSION
+                # 사이렌은 사망 사고가 대부분. 끝부분 '사망' 글자를 못 읽었으면 사망 1명으로 본다
+                if not re.search(r"사망|숨[지졌져]|부상|다쳐|다친|중상|경상", body):
+                    extra["deaths"] = 1
             # 목록에 본문이 없고 상세 API가 따로 있으면 상세 호출
             if not body and m.get("detail_url"):
                 d = s.get(m["detail_url"].format(id=sid), timeout=20)
