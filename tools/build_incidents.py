@@ -166,8 +166,13 @@ def main(argv=None):
         cfg_path = os.path.join(data_dir, "siren_config.json")
         cfg = kosha_siren.load_config(cfg_path) if os.path.exists(cfg_path) else {}
         if cfg.get("enabled"):
-            siren = kosha_siren.fetch(cfg)
-            print(f"사이렌 수집: {len(siren)}건")
+            known = {k[len("siren-"):] for k, v in read_existing().items() if v.get("source") == "siren"}
+            try:
+                siren = kosha_siren.fetch(cfg, known=known)
+                print(f"사이렌 수집: 새 게시물 {len(siren)}건 (이미 있는 {len(known)}건은 건너뜀)")
+            except Exception as e:  # 사이트가 막히거나 바뀌어도 기존 데이터는 지킨다
+                print(f"사이렌 수집 실패 — 기존 데이터로 계속합니다: {type(e).__name__}: {e}")
+                siren = []
         else:
             print("사이렌 수집 건너뜀: data/siren_config.json 의 enabled 가 false")
 

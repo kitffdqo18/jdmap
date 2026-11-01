@@ -10,6 +10,7 @@ README '사이렌 연동 설정' 절차 참고. 코드 수정 없이 설정만 �
 """
 import json
 import os
+import re
 import time
 
 import requests
@@ -62,16 +63,34 @@ def _request(s, cfg, page):
     return r
 
 
-def fetch_json(cfg, session=None):
+def fetch_json(cfg, session=None, known=None):
+    """known: 이미 수집해 둔 게시물 번호 집합 (그림 글자 읽기를 다시 하지 않으려고)."""
     s = session or _session(cfg)
     m = cfg["json"]
+    known = set(known or ())
+    if m.get("image") and cfg.get("ocr"):
+        from .. import ocr
+        if not ocr.available():
+            raise RuntimeError("그림 글자 읽기 프로그램(tesseract)이 없습니다. collect.yml 의 OCR 준비 단계를 확인하세요.")
     out = []
     for page in range(1, int(cfg.get("pages", 1)) + 1):
         data = _request(s, cfg, page).json()
         items = dig(data, m["items_path"]) or []
         for it in items:
             sid = dig(it, m["id"])
+            if str(sid) in known:
+                continue
             body = dig(it, m.get("body", "")) if m.get("body") else ""
+            extra = {}
+            # 본문이 그림 안에만 있으면 그림에서 글자를 읽는다 (OCR)
+            if not body and m.get("image") and cfg.get("ocr"):
+                from .. import ocr
+                extra = ocr.read_poster(ocr.decode_data_url(dig(it, m["image"]) or "")) or {}
+                body = extra.pop("body", "") or ""
+                extra = {k: v for k, v in extra.items() if v}
+                if not body:  # 다음 실행 때 다시 시도
+                    print(f"  그림 글자 읽기 실패, 다음에 다시 시도: {sid} {dig(it, m.get('title', '')) or ''}")
+                    continue
             # 목록에 본문이 없고 상세 API가 따로 있으면 상세 호출
             if not body and m.get("detail_url"):
                 d = s.get(m["detail_url"].format(id=sid), timeout=20)
@@ -82,8 +101,9 @@ def fetch_json(cfg, session=None):
                 "source_id": str(sid),
                 "title": dig(it, m.get("title", "")) or "",
                 "body": _strip_html(body or ""),
-                "posted_date": str(dig(it, m.get("posted", "")) or ""),
+                "posted_date": _title_date(dig(it, m.get("title", "")) or "") or str(dig(it, m.get("posted", "")) or ""),
                 "url": (m.get("url_template") or "").format(id=sid) or cfg.get("public_url"),
+                **extra,
             })
         time.sleep(float(cfg.get("delay_seconds", 1.0)))
     return out
@@ -121,6 +141,12 @@ def fetch_html(cfg, session=None):
     return out
 
 
+def _title_date(title):
+    """'(261028)중대재해 발생 알림(1)' → '2026-10-28' (제목 앞 날짜가 실제 알림 날짜)."""
+    m = re.match(r"\s*\((\d{2})(\d{2})(\d{2})\)", title or "")
+    return f"20{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else ""
+
+
 def _text(node):
     return " ".join(node.get_text(" ").split()) if node is not None else ""
 
@@ -132,10 +158,10 @@ def _strip_html(s):
     return " ".join(BeautifulSoup(s, "html.parser").get_text(" ").split())
 
 
-def fetch(cfg=None, session=None):
+def fetch(cfg=None, session=None, known=None):
     cfg = cfg or load_config()
     if not cfg.get("enabled"):
         raise RuntimeError("siren_config.json 의 enabled 가 false 입니다. 데이터 주소를 확인해 설정한 뒤 true 로 바꾸세요.")
     if cfg.get("mode") == "html":
         return fetch_html(cfg, session)
-    return fetch_json(cfg, session)
+    return fetch_json(cfg, session, known=known)

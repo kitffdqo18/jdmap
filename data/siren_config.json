@@ -1,30 +1,28 @@
 {
-  "_설명": "사이렌 데이터 주소를 개발자도구에서 확인한 뒤 list_url·params·json 항목을 채우고 enabled 를 true 로 바꾸세요. README '사이렌 연동 설정' 참고.",
-  "enabled": false,
+  "_설명": "안전보건공단 중대재해 사이렌 자동 수집 설정. 사고 내용이 포스터 그림 안에 있어 그림에서 글자를 읽는다(ocr). 수집을 멈추려면 enabled 를 false 로.",
+  "enabled": true,
   "mode": "json",
+  "ocr": true,
   "public_url": "https://portal.kosha.or.kr/archive/imprtnDsstrAlrame/CSADV50000/CSADV50000M01",
-  "list_url": "https://portal.kosha.or.kr/여기에_목록_API_주소",
+  "list_url": "https://portal.kosha.or.kr/api/portal24/bizC/p/CSADV50000/selectImprtnDsstrSirnList",
   "method": "POST",
   "body_type": "json",
-  "params": { "pageIndex": "{page}", "pageUnit": 20 },
-  "headers": { "Referer": "https://portal.kosha.or.kr/archive/imprtnDsstrAlrame/CSADV50000/CSADV50000M01" },
-  "pages": 2,
-  "delay_seconds": 1.5,
+  "params": { "page": "{page}", "rowsPerPage": 12 },
+  "headers": {
+    "Referer": "https://portal.kosha.or.kr/archive/imprtnDsstrAlrame/CSADV50000/CSADV50000M01",
+    "Origin": "https://portal.kosha.or.kr"
+  },
+  "pages": 3,
+  "delay_seconds": 1.0,
   "json": {
-    "items_path": "data.list",
-    "id": "게시물번호_필드명",
-    "title": "제목_필드명",
-    "body": "본문_필드명",
-    "posted": "등록일_필드명",
+    "items_path": "payload.imprtnDsstrSirnList",
+    "id": "imprtnDsstrSirnNo",
+    "title": "imprtnDsstrSirnNm",
+    "body": "",
+    "image": "imgSrc",
+    "posted": "frstRegDt",
     "url_template": "",
     "detail_url": "",
     "detail_body": ""
-  },
-  "html": {
-    "item_selector": "table tbody tr",
-    "link_selector": "a",
-    "title_selector": "td.subject",
-    "date_selector": "td.date",
-    "detail_body_selector": ".view_content"
   }
 }
