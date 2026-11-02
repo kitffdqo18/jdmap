@@ -712,8 +712,9 @@ $("btnDetail").addEventListener("click", () => curSido() && openDrawer(curSido()
 
 /* ---------- 상세 드로어 (중대재해 사이렌 콘텐츠) ---------- */
 let lastFocus = null;
+let drawerOpenedAt = 0;
 function openDrawer(region, focusId, sgg){
-  lastFocus = document.activeElement;
+  lastFocus = document.activeElement; drawerOpenedAt = Date.now();
   const list = inRange().filter(x => x.region === region && (!sgg || sggMatch(x.sigungu, sgg)));
   $("drTitle").textContent = (FULL[region] || "지역 미상") + (sgg ? " " + sgg : "");
   $("drSub").textContent = `${({1:"오늘",7:"최근 7일",30:"최근 30일"})[range]} 사고 ${list.length}건 · 사망 ${list.reduce((s,x)=>s+x.dead,0)}명`;
@@ -726,7 +727,8 @@ function openDrawer(region, focusId, sgg){
 }
 function closeDrawer(){ $("drawer").classList.remove("on"); $("scrim").classList.remove("on"); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
 $("drClose").addEventListener("click", closeDrawer);
-$("scrim").addEventListener("click", closeDrawer);
+// 휴대폰에서 지도를 누른 손가락이 떨어질 때 생기는 '클릭'이 막 열린 카드 창을 바로 닫지 않도록
+$("scrim").addEventListener("click", () => { if (Date.now() - drawerOpenedAt > 450) closeDrawer(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $("drawer").classList.contains("on")) closeDrawer(); });
 
 /* ---------- 3D 지도 (Canvas 2.5D 압출) ---------- */
@@ -1051,11 +1053,15 @@ function hitTest(mx,my){ cctx.save(); cctx.setTransform(DPR,0,0,DPR,0,0); let fo
   for (const p of order){ if ((p.path && cctx.isPointInPath(p.path, mx*DPR, my*DPR, "evenodd")) || (p.basePath && cctx.isPointInPath(p.basePath, mx*DPR, my*DPR, "evenodd"))) { found=p; break; } }
   cctx.restore(); return found; }
 
-let dragging = false, downX = 0, downY = 0, downYaw = 0, moved = false;
-cv.addEventListener("pointerdown", e => { downX = e.clientX; downY = e.clientY; downYaw = yaw; moved = false; dragging = true; cv.setPointerCapture(e.pointerId); });
+let dragging = false, downX = 0, downY = 0, downYaw = 0, moved = false, slop = 5;
+// 손가락은 마우스보다 많이 흔들리므로 터치는 12px 까지는 '누름'으로 본다
+cv.addEventListener("pointerdown", e => { downX = e.clientX; downY = e.clientY; downYaw = yaw; moved = false; dragging = true; slop = e.pointerType === "touch" ? 12 : 5; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointercancel", () => { dragging = false; cv.classList.remove("dragging"); });
+// 손가락으로 누를 때 경계선 근처를 살짝 빗나가도 가장 가까운 지역을 고른다
+function nearest(mx, my, r){ let best = null, bd = r; provs.forEach(p => { if (!p.screen) return; const d = Math.hypot(p.screen[0]-mx, p.screen[1]-my); if (d < bd){ bd = d; best = p; } }); return best; }
 cv.addEventListener("pointermove", e => {
   const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
-  if (dragging && (e.buttons & 1)){ const dx = e.clientX - downX; if (Math.abs(dx) > 5 || Math.abs(e.clientY-downY) > 5) moved = true;
+  if (dragging && (e.buttons & 1)){ const dx = e.clientX - downX; if (Math.abs(dx) > slop || Math.abs(e.clientY-downY) > slop) moved = true;
     if (moved){ yaw = downYaw + dx * 0.006; dirty = true; cv.classList.add("dragging"); tip.style.opacity = 0; return; } }
   const p = hitTest(mx, my), name = p ? p.name : null;
   if (name !== hover){ hover = name; dirty = true; }
@@ -1065,8 +1071,13 @@ cv.addEventListener("pointermove", e => {
 });
 cv.addEventListener("pointerup", e => { dragging = false; cv.classList.remove("dragging");
   if (moved) return;
-  const r = cv.getBoundingClientRect(), p = hitTest(e.clientX - r.left, e.clientY - r.top);
+  const touch = e.pointerType === "touch";
+  // 손가락은 떼는 순간 미끄러지므로, 처음 닿은 자리를 기준으로 고른다
+  const r = cv.getBoundingClientRect(), mx = (touch ? downX : e.clientX) - r.left, my = (touch ? downY : e.clientY) - r.top;
+  const p = hitTest(mx, my) || (touch ? nearest(mx, my, 28) : null);
   if (!p){ return; }
+  // 휴대폰: 시군구 지도에서는 한 번만 눌러도 사고 카드가 바로 올라온다
+  if (touch && level === "sido"){ choose(p.name); if (CNT[p.name]) openDrawer(drillSido, null, p.name); return; }
   if (selected !== p.name) return choose(p.name);
   if (level === "sido") openDrawer(drillSido, null, p.name); else drillInto(p.name);
 });
@@ -1098,7 +1109,7 @@ async function drillInto(sido){
   swapLayer(shapes, () => {
     level = "sido"; drillSido = sido; selected = null;
     $("btnBack").hidden = false; $("crumb").hidden = false; $("crumb").textContent = FULL[sido];
-    $("hint").textContent = "시군구를 눌러 선택 · 한 번 더 누르면 상세 보기 · ← 전국으로 돌아가기";
+    $("hint").textContent = matchMedia("(pointer: coarse)").matches ? "사고 표시가 있는 시군구를 누르면 사고 카드가 열립니다 · ← 전국으로 돌아가기" : "시군구를 눌러 선택 · 한 번 더 누르면 사고 카드 · ← 전국으로 돌아가기";
     cv.setAttribute("aria-label", `${FULL[sido]} 시군구별 중대재해 3D 지도`);
   });
 }
