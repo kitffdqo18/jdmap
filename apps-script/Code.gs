@@ -83,7 +83,29 @@ function doPost(e) {
   var d;
   try { d = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
   catch (err) { return json_({ ok: false, message: '요청 형식이 올바르지 않습니다.' }); }
-  return json_(handleLead_(d, new Date()));
+  try {
+    return json_(handleLead_(d, new Date()));
+  } catch (err) {
+    // 어떤 오류든 사이트에는 '접수 실패'를 정확히 알리고, 원인은 '오류기록' 탭과 메일로 남긴다
+    logError_(err, d);
+    return json_({ ok: false, message: '일시적인 오류로 접수하지 못했습니다. 잠시 뒤 다시 시도해 주세요.' });
+  }
+}
+
+/** 오류를 시트 '오류기록' 탭에 남기고 운영자에게 메일로 알린다 (실패해도 조용히 넘어감). */
+function logError_(err, d) {
+  var msg = String((err && err.stack) || err);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sh = ss.getSheetByName('오류기록') || ss.insertSheet('오류기록');
+    if (sh.getLastRow() === 0) sh.appendRow(['시각', '오류', '회사명', '접수번호']);
+    sh.appendRow([new Date(), msg.slice(0, 1000), (d && d.corp) || '', (d && d.rid) || '']);
+  } catch (e2) { console.error('오류기록 실패: ' + e2); }
+  try {
+    var to = CONFIG.NOTIFY_TO || Session.getEffectiveUser().getEmail();
+    MailApp.sendEmail(to, '[중대재해 MAP] 견적 접수 오류', '견적 접수 중 오류가 났습니다. 신청자 화면에는 다시 시도하라는 안내가 나갔습니다.\n\n회사명: ' + ((d && d.corp) || '-') + '\n오류: ' + msg.slice(0, 1500));
+  } catch (e3) { console.error('오류 메일 실패: ' + e3); }
+  console.error(msg);
 }
 
 function handleLead_(d, now) {
@@ -99,14 +121,16 @@ function handleLead_(d, now) {
   if (cnt >= CONFIG.MAX_PER_10MIN) return { ok: false, message: '신청이 많아 잠시 접수를 막았습니다. 10분 뒤 다시 시도해 주세요.' };
 
   var lock = LockService.getScriptLock();
-  lock.waitLock(20000);
+  if (!lock.tryLock(25000)) throw new Error('잠금 대기 시간 초과 (동시에 신청이 몰림)');
   try {
     var sh = sheet_();
     var c = v.clean;
     if (c.rid && isDuplicate_(sh, c.rid)) return { ok: true, duplicate: true };  // 같은 신청이 두 번 온 경우
     var row = [now, '신규', '', c.corp, c.biz, c.ind, c.emp, c.sales, c.pay, c.name, "'" + c.tel, c.mail, c.memo,
                now, CONFIG.CONSENT_VERSION, c.rid, c.page];
-    sh.appendRow(row);
+    // 시트 저장이 일시적으로 실패하면 1초 쉬고 한 번 더
+    try { sh.appendRow(row); }
+    catch (err1) { Utilities.sleep(1000); sh.appendRow(row); }
     cache.put(bucket, String(cnt + 1), 900);
     try { notify_(c, sh); } catch (mailErr) { console.error('알림 메일 실패: ' + mailErr); }
     return { ok: true };

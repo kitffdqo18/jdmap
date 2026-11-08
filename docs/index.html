@@ -1192,17 +1192,21 @@ form.addEventListener("submit", async e => {
     website: $("q_website").value, t: openedAt, page: location.href.split("#")[0] };
   const btn = $("qsubmit"); btn.disabled = true; $("qstatus").textContent = "접수 중…";
   const body = JSON.stringify(data);
-  try {
-    // text/plain 으로 보내야 구글 Apps Script 가 사전확인(preflight) 없이 받는다
-    const r = await fetch(CFG.leadEndpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, redirect: "follow" });
-    const j = await r.json().catch(() => null);
-    if (j && j.ok){ showDone(data); return; }
-    if (j && j.errors){ Object.entries(j.errors).forEach(([k,v]) => { if ($("e_"+k)) setErr(k, v); }); $("qstatus").textContent = j.message || "입력 내용을 확인해 주세요."; }
-    else $("qstatus").textContent = (j && j.message) || "접수하지 못했습니다. 잠시 뒤 다시 시도해 주세요.";
-  } catch(_){
-    // 응답을 읽을 수 없는 환경: 같은 접수번호(rid)로 한 번 더 보내고(중복은 시트에서 걸러짐) 접수로 안내
-    try { await fetch(CFG.leadEndpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body }); showDone(data); return; }
-    catch(__){ $("qstatus").textContent = "네트워크 오류로 접수하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요."; }
+  // text/plain 으로 보내야 구글 Apps Script 가 사전확인(preflight) 없이 받는다
+  const send = () => fetch(CFG.leadEndpoint, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, redirect: "follow" }).then(r => r.json());
+  let j = null;
+  try { j = await send(); }
+  catch(_){
+    // 응답을 못 받으면 1.5초 뒤 같은 접수번호로 한 번 더 (중복은 시트에서 걸러짐)
+    $("qstatus").textContent = "응답이 늦어 다시 보내는 중…";
+    await new Promise(r => setTimeout(r, 1500));
+    try { j = await send(); } catch(__){ j = null; }
+  }
+  if (j && j.ok){ showDone(data); return; }
+  if (j && j.errors){ Object.entries(j.errors).forEach(([k,v]) => { if ($("e_"+k)) setErr(k, v); }); $("qstatus").textContent = j.message || "입력 내용을 확인해 주세요."; }
+  else {
+    // 접수가 확인되지 않으면 완료로 표시하지 않는다
+    $("qstatus").innerHTML = `<span style="color:var(--danger);font-weight:700">${esc((j && j.message) || "접수가 확인되지 않았습니다. 잠시 뒤 다시 눌러 주세요.")}</span>${CFG.operatorEmail ? ` 계속 안 되면 ${esc(CFG.operatorEmail)} 로 연락해 주세요.` : ""}`;
   }
   btn.disabled = false;
 });
