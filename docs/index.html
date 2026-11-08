@@ -7,267 +7,274 @@
 <meta name="description" content="전국 중대재해 발생 현황을 지도로 보고, 기업중대재해배상책임보험 견적을 신청하세요.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800;900&display=swap">
 <style>
-/* Layout: 관제 화면(어두운 지도 스테이지)을 중심에 두고, 아래로 보험 안내 → Q&A → 견적 신청이 이어지는 단일 페이지 */
+/* 디자인: 산업현장 안전 게시판. 안전보건표지 색(안내 녹색·경고 노랑·위험 빨강·지시 파랑)을 뜻에 맞게만 쓴다.
+   카드 대신 게시판 틀·서식 칸·표지판, 둥근 모서리는 거의 없음, 그림자 없음(인쇄물처럼). 서체는 Gothic A1 한 가지. */
 :root{
-  --bg:#EDF0F3; --surface:#FFFFFF; --surface-2:#F5F7F9; --ink:#14202B; --muted:#5A6774; --line:#D3DAE1;
-  --accent:#E8A100; --accent-ink:#8A5C00; --accent-soft:#FFF1CC; --danger:#C9362A; --danger-soft:#FBE3E0; --ok:#1F7A55; --ok-soft:#DDF1E7;
-  --stage:#0D1823; --stage-2:#132331; --stage-ink:#DCE7F0; --stage-muted:#8EA3B5; --stage-line:#24384A;
-  --land:#2A4258; --land-hi:#3A5C78; --land-sel:#E8A100; --wall:#16283A;
-  --f-display:"Black Han Sans","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --r:12px; --r-sm:8px;
+  --wall:#E4E8E2; --paper:#FFFFFF; --paper-2:#F3F5F1; --ink:#1C1F1D; --muted:#59605A; --rule:#C3CAC1; --rule-2:#9AA39A;
+  --green:#00704A; --green-2:#005C3C; --green-soft:#E1F0E8;
+  --yellow:#FFC20E; --red:#D7261E; --red-soft:#FBE4E2; --blue:#1E4B9B;
+  --accent:var(--green); --danger:var(--red); --ok:var(--green);
+  --land:#2A4258; --land-hi:#3A5C78; --land-sel:#E8A100; --wall-3d:#16283A;
+  --f:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-display:var(--f); --f-body:var(--f); --f-mono:var(--f);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0A1118; --surface:#111B25; --surface-2:#16222E; --ink:#E5ECF2; --muted:#8B9AA8; --line:#243240;
-  --accent:#F5B82E; --accent-ink:#F5B82E; --accent-soft:#3A2E10; --danger:#FF6B5C; --danger-soft:#3A1A17; --ok:#4CC08D; --ok-soft:#12301F;
+  --wall:#121613; --paper:#1B201C; --paper-2:#232923; --ink:#E7ECE7; --muted:#A2ABA3; --rule:#343C35; --rule-2:#4B554C;
+  --green:#2E9E6A; --green-2:#2E9E6A; --green-soft:#16301F; --red:#FF6656; --red-soft:#3A1B18; --blue:#7FA6E8;
   color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0A1118; --surface:#111B25; --surface-2:#16222E; --ink:#E5ECF2; --muted:#8B9AA8; --line:#243240;
-  --accent:#F5B82E; --accent-ink:#F5B82E; --accent-soft:#3A2E10; --danger:#FF6B5C; --danger-soft:#3A1A17; --ok:#4CC08D; --ok-soft:#12301F;
+  --wall:#121613; --paper:#1B201C; --paper-2:#232923; --ink:#E7ECE7; --muted:#A2ABA3; --rule:#343C35; --rule-2:#4B554C;
+  --green:#2E9E6A; --green-2:#2E9E6A; --green-soft:#16301F; --red:#FF6656; --red-soft:#3A1B18; --blue:#7FA6E8;
   color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-inline:clamp(16px,3vw,40px);padding-block:0 48px}
-a{color:inherit}
-.wrap{max-width:1360px;margin-inline:auto}
-.hazard{height:6px;margin-inline:calc(-1 * clamp(16px,3vw,40px));background:repeating-linear-gradient(-45deg,var(--accent) 0 14px,#1A1A1A 14px 28px)}
+body{background:var(--wall);color:var(--ink);font-family:var(--f);font-size:15.5px;line-height:1.65;padding-inline:clamp(16px,3vw,40px);padding-block:0 48px;word-break:keep-all}
+a{color:var(--blue)}
+.wrap{max-width:1280px;margin-inline:auto}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 
-/* header */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);margin-inline:calc(-1 * clamp(16px,3vw,40px));padding:12px clamp(16px,3vw,40px);border-bottom:1px solid var(--line)}
+/* 머리띠: 안내 녹색 띠 + 녹십자 */
+.hazard{height:8px;margin-inline:calc(-1 * clamp(16px,3vw,40px));background:repeating-linear-gradient(-45deg,var(--yellow) 0 16px,#1C1F1D 16px 32px)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--green);color:#fff;margin-inline:calc(-1 * clamp(16px,3vw,40px));padding:10px clamp(16px,3vw,40px)}
 .top .wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand-mark{width:30px;height:30px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#1A1A1A;font-family:var(--f-display);font-size:17px}
-.brand b{font-family:var(--f-display);font-weight:400;font-size:21px;letter-spacing:.5px}
-.brand small{display:block;font-size:10.5px;color:var(--muted);letter-spacing:.12em;line-height:1}
-nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
-nav a{text-decoration:none;font-size:14px;font-weight:500;color:var(--muted);padding:7px 12px;border-radius:999px}
-nav a:hover{color:var(--ink);background:var(--surface-2)}
-nav a.cta{background:var(--ink);color:var(--bg)}
-nav a.cta:hover{background:var(--ink);opacity:.9}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
+.brand-mark{width:32px;height:32px;background:#fff;border-radius:50%;display:grid;place-items:center;flex:none}
+.brand-mark svg{width:22px;height:22px}
+.brand b{font-weight:900;font-size:20px;letter-spacing:-.2px}
+.brand small{display:block;font-size:12px;opacity:.85;font-weight:500;line-height:1.2}
+nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+nav a{text-decoration:none;font-size:14.5px;font-weight:600;color:#fff;padding:8px 12px;border-radius:2px}
+nav a:hover{background:var(--green-2)}
+nav a.cta{background:#fff;color:var(--green);font-weight:800}
+nav a.cta:hover{background:var(--green-soft)}
 nav a[hidden]{display:none}
 
-/* hero */
-.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;padding-block:32px 20px}
-.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-ink);text-transform:uppercase;font-weight:600}
-h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,4.4vw,54px);line-height:1.12;margin:8px 0 10px;text-wrap:balance;letter-spacing:-.5px}
-.lede{color:var(--muted);max-width:62ch;margin:0}
-.stamp{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);text-align:right;line-height:1.7}
-.stamp b{color:var(--ink);font-weight:600}
-.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink)}
-.chip.red{background:var(--danger-soft);color:var(--danger)}
-.chip.ok{background:var(--ok-soft);color:var(--ok)}
+/* 현황판: 현장 무재해 기록판처럼 녹색 틀 안에 숫자판 */
+.hero{padding-block:28px 14px;max-width:820px}
+.hero h1{font-weight:900;font-size:clamp(28px,4vw,44px);line-height:1.2;margin:0 0 10px;letter-spacing:-.8px;text-wrap:balance}
+.lede{color:var(--muted);max-width:60ch;margin:0}
+.boardframe{background:var(--green);color:#fff;border:3px solid var(--green-2);padding:0 0 14px;margin-bottom:16px}
+.boardframe-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;border-bottom:2px solid rgba(255,255,255,.35)}
+.boardframe-head h2{margin:0;font-size:19px;font-weight:900;letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
+.boardframe-head h2 .cross{width:20px;height:20px;background:#fff;border-radius:50%;display:grid;place-items:center}
+.boardframe-head h2 .cross svg{width:14px;height:14px}
+.stamp{font-size:13px;opacity:.95;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.stamp b{font-weight:800}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:2px;background:var(--paper-2);color:var(--ink);border:1px solid var(--rule)}
+.chip.red{background:var(--red-soft);color:var(--red);border-color:transparent}
+.chip.ok{background:var(--green-soft);color:var(--green);border-color:transparent}
+.boardframe .chip{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:14px 16px 0}
+.kpi{display:grid;gap:4px;padding:0 14px;border-left:1px solid rgba(255,255,255,.3);align-content:start}
+.kpi:first-child{border-left:0;padding-left:0}
+.kpi span{font-size:14px;font-weight:700}
+.kpi b{justify-self:start;background:#fff;color:#1C1F1D;font-weight:900;font-size:clamp(28px,3.2vw,40px);line-height:1;padding:8px 12px 6px;border-radius:2px;box-shadow:inset 0 -3px 0 #D9DED7;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.kpi b small{font-size:15px;font-weight:700;color:#59605A;margin-left:4px}
+.kpi.alert b{color:var(--red)}
+.kpi em{font-style:normal;font-size:12.5px;opacity:.9}
 
-/* KPI */
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:2px}
-.kpi span{font-size:13px;color:var(--muted)}
-.kpi b{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,3vw,38px);line-height:1.1;font-variant-numeric:tabular-nums}
-.kpi b small{font-family:var(--f-body);font-size:14px;color:var(--muted);margin-left:3px}
-.kpi.alert b{color:var(--danger)}
-.kpi em{font-style:normal;font-size:12px;color:var(--muted)}
-
-/* board */
+/* 지도 + 사고 일지 */
 .board{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:16px;align-items:stretch}
-.stage{position:relative;background:radial-gradient(130% 100% at 38% 22%,#BFDDEB 0%,#93C1DA 42%,#6A9EC0 78%,#5A8DB2 100%);border-radius:16px;overflow:hidden;min-height:620px;color:#14202B;border:1px solid #7FA9C4}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stage{background:radial-gradient(130% 100% at 38% 22%,#2B4A63 0%,#1C3449 45%,#12253A 80%,#0D1C2C 100%);border-color:#29445C}}
-:root[data-theme="dark"] .stage{background:radial-gradient(130% 100% at 38% 22%,#2B4A63 0%,#1C3449 45%,#12253A 80%,#0D1C2C 100%);border-color:#29445C}
+.stage{position:relative;background:linear-gradient(180deg,#B5CDD8 0%,#94B6C7 60%,#7FA4B8 100%);border:1px solid var(--rule-2);border-radius:2px;overflow:hidden;min-height:620px;color:#14202B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .stage{background:linear-gradient(180deg,#22394A 0%,#182B3A 60%,#11202C 100%);border-color:#2A3F50}}
+:root[data-theme="dark"] .stage{background:linear-gradient(180deg,#22394A 0%,#182B3A 60%,#11202C 100%);border-color:#2A3F50}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y;cursor:grab;transition:opacity .22s}
 .stage canvas.fading{opacity:0}
-.crumb{position:absolute;top:58px;left:14px;font-family:var(--f-display);font-size:22px;color:#14202B;text-shadow:0 0 6px rgba(255,255,255,.9),0 0 2px #fff;pointer-events:none}
+.crumb{position:absolute;top:58px;left:14px;font-weight:900;font-size:22px;color:#14202B;text-shadow:0 0 6px rgba(255,255,255,.9),0 0 2px #fff;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.stage canvas{transition:none}}
 .stage canvas.dragging{cursor:grabbing}
 .stage canvas.pointer{cursor:pointer}
-.stage-bar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;pointer-events:none}
+.stage-bar{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;pointer-events:none}
 .stage-bar>*{pointer-events:auto}
-.seg{display:inline-flex;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);box-shadow:0 2px 8px rgba(20,50,80,.12);border-radius:999px;padding:3px}
-.seg button{font:inherit;font-size:13px;background:none;border:0;color:#3E4D5A;padding:5px 12px;border-radius:999px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--accent);color:#1A1A1A;font-weight:600}
-.seg button:focus-visible,.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.ghost{font:inherit;font-size:13px;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);color:#14202B;box-shadow:0 2px 8px rgba(20,50,80,.12);padding:6px 12px;border-radius:999px;cursor:pointer}
-.ghost:hover{border-color:#5A6774}
-.legend{position:absolute;left:14px;bottom:56px;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);border-radius:10px;padding:10px 12px;font-size:12px;color:#3E4D5A;display:grid;gap:5px}
+.seg{display:inline-flex;background:#fff;border:1px solid #6F7B72;border-radius:2px}
+.seg button{font:inherit;font-size:13.5px;font-weight:600;background:none;border:0;border-left:1px solid #C3CAC1;color:#2A302B;padding:6px 13px;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:#1C1F1D;color:#fff}
+.ghost{font:inherit;font-size:13.5px;font-weight:600;background:#fff;border:1px solid #6F7B72;color:#1C1F1D;padding:6px 12px;border-radius:2px;cursor:pointer}
+.ghost:hover{background:#F3F5F1}
+.legend{position:absolute;left:12px;bottom:54px;background:rgba(255,255,255,.94);border:1px solid #9AA39A;border-radius:2px;padding:9px 11px;font-size:12.5px;color:#2A302B;display:grid;gap:4px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
-.hint{position:absolute;right:14px;bottom:56px;font-size:12px;color:#3E4D5A;background:rgba(255,255,255,.86);border:1px solid rgba(20,40,60,.14);border-radius:10px;padding:8px 12px;max-width:260px}
-.tip{position:absolute;pointer-events:none;background:#F4F7FA;color:#14202B;border-radius:8px;padding:7px 10px;font-size:12.5px;box-shadow:0 6px 20px #0006;transform:translate(-50%,calc(-100% - 12px));white-space:nowrap;opacity:0;transition:opacity .12s}
-.tip b{font-weight:700}
+.hint{position:absolute;right:12px;bottom:54px;font-size:12.5px;color:#2A302B;background:rgba(255,255,255,.94);border:1px solid #9AA39A;border-radius:2px;padding:8px 11px;max-width:270px}
+.tip{position:absolute;pointer-events:none;background:#1C1F1D;color:#fff;border-radius:2px;padding:7px 10px;font-size:13px;transform:translate(-50%,calc(-100% - 12px));white-space:nowrap;opacity:0;transition:opacity .12s}
+.tip b{font-weight:800}
 .maperr{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:#1F3B52;font-size:14px}
 
-/* ticker */
-.ticker{position:absolute;left:0;right:0;bottom:0;height:42px;background:#060C12;border-top:1px solid var(--stage-line);display:flex;align-items:center;overflow:hidden}
-.ticker .lab{flex:none;height:100%;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--danger);color:#fff;font-family:var(--f-display);font-size:15px;letter-spacing:.5px;z-index:1}
+/* 전광판 */
+.ticker{position:absolute;left:0;right:0;bottom:0;height:42px;background:#111411;display:flex;align-items:center;overflow:hidden}
+.ticker .lab{flex:none;height:100%;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--red);color:#fff;font-weight:800;font-size:14px;z-index:1}
 .ticker .lab::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1.2s infinite}
-.track{display:flex;gap:48px;white-space:nowrap;padding-left:24px;animation:scroll 70s linear infinite;font-family:var(--f-mono);font-size:13px;color:#FFD467}
+.track{display:flex;gap:48px;white-space:nowrap;padding-left:24px;animation:scroll 70s linear infinite;font-size:14px;font-weight:600;color:#FFC20E}
 .ticker:hover .track{animation-play-state:paused}
-.track span b{color:#fff;font-weight:600;margin-right:6px}
+.track span b{color:#fff;font-weight:800;margin-right:6px;font-variant-numeric:tabular-nums}
 @keyframes scroll{to{transform:translateX(-50%)}}
 @keyframes blink{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.track{animation:none}.ticker .lab::before{animation:none}}
 
-/* side panel */
-.side{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0;max-height:620px}
+.side{background:var(--paper);border:1px solid var(--rule-2);border-top:4px solid var(--ink);border-radius:2px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0;max-height:620px}
 .side-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .side-head .btn{white-space:nowrap;flex:none}
-.side h2{font-family:var(--f-display);font-weight:400;font-size:28px;margin:2px 0 0;line-height:1.15}
-.side .sub{font-size:13px;color:var(--muted)}
-.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.mini div{background:var(--surface-2);border-radius:var(--r-sm);padding:9px 10px}
-.mini span{display:block;font-size:11.5px;color:var(--muted)}
-.mini b{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums}
-.bars{display:grid;gap:6px}
-.bar{display:grid;grid-template-columns:92px 1fr 28px;gap:8px;align-items:center;font-size:12.5px}
-.bar .t{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
-.bar .t i{display:block;height:100%;background:var(--accent);border-radius:99px}
-.bar b{font-family:var(--f-mono);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
-.list{overflow:auto;display:grid;gap:8px;padding-right:4px;margin-right:-4px;min-height:0;flex:1}
-.inc{display:grid;grid-template-columns:4px 1fr;gap:12px;padding:11px 12px 11px 0;border-bottom:1px solid var(--line);text-align:left;background:none;border-top:0;border-left:0;border-right:0;font:inherit;color:inherit;cursor:pointer;width:100%}
-.inc:hover{background:var(--surface-2)}
-.inc:focus-visible{outline:2px solid var(--accent)}
-.inc .sev{border-radius:2px;background:var(--accent)}
-.inc .sev.dead{background:var(--danger)}
-.inc .meta{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
-.inc .ttl{font-weight:600;font-size:14px;margin:2px 0}
-.inc .ov{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.btn{font:inherit;font-weight:600;font-size:14px;border-radius:10px;padding:11px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.btn:hover{border-color:var(--muted)}
-.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.btn.amber{background:var(--accent);color:#1A1A1A;border-color:var(--accent)}
-.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn[disabled]{opacity:.5;cursor:not-allowed}
-.empty{color:var(--muted);font-size:13.5px;padding:18px 0}
+.side .eyebrow{font-size:13px;color:var(--muted);font-weight:600}
+.side h2{font-weight:900;font-size:26px;margin:0;line-height:1.2;letter-spacing:-.4px}
+.side .sub{font-size:13.5px;color:var(--muted)}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--rule)}
+.mini div{padding:7px 10px;border-left:1px solid var(--rule)}
+.mini div:first-child{border-left:0}
+.mini span{display:block;font-size:12.5px;color:var(--muted)}
+.mini b{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.bars{display:grid;gap:5px}
+.bar{display:grid;grid-template-columns:92px 1fr 28px;gap:8px;align-items:center;font-size:13px}
+.bar .t{height:10px;background:var(--paper-2);border:1px solid var(--rule)}
+.bar .t i{display:block;height:100%;background:var(--ink)}
+.bar b{font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.list{overflow:auto;display:grid;align-content:start;min-height:0;flex:1;border-top:2px solid var(--ink)}
+.inc{display:grid;grid-template-columns:6px 1fr;gap:12px;padding:10px 4px 10px 0;border-bottom:1px solid var(--rule);text-align:left;background:none;border-top:0;border-left:0;border-right:0;font:inherit;color:inherit;cursor:pointer;width:100%}
+.inc:hover{background:var(--paper-2)}
+.inc .sev{background:var(--yellow)}
+.inc .sev.dead{background:var(--red)}
+.inc .meta{font-size:12.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.inc .ttl{font-weight:800;font-size:14.5px;margin:1px 0}
+.inc .ov{font-size:13.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.btn{font:inherit;font-weight:700;font-size:14.5px;border-radius:2px;padding:10px 16px;cursor:pointer;border:1px solid var(--ink);background:var(--paper);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{background:var(--paper-2)}
+.btn.primary,.btn.amber{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.primary:hover,.btn.amber:hover{background:var(--green-2)}
+.empty{color:var(--muted);font-size:14px;padding:18px 0}
 
-/* drawer */
-.scrim{position:fixed;inset:0;background:#05090Daa;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+/* 상세 창 */
+.scrim{position:fixed;inset:0;background:rgba(12,16,13,.6);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
 .scrim.on{opacity:1;pointer-events:auto}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--surface);z-index:41;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--wall);z-index:41;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .drawer.on{transform:none}
 @media (prefers-reduced-motion:reduce){.drawer,.scrim{transition:none}}
-.dr-head{padding:22px 24px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}
-.dr-head h3{font-family:var(--f-display);font-weight:400;font-size:26px;margin:4px 0 0}
-.dr-body{overflow:auto;padding:16px 24px 24px;display:grid;gap:14px;align-content:start}
-.card{border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:8px}
-.card .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.card h4{margin:0;font-size:16px}
-.kv{display:grid;grid-template-columns:72px 1fr;gap:4px 10px;font-size:13px}
-.kv dt{color:var(--muted)}
-.kv dd{margin:0}
-.x{font:inherit;font-size:22px;line-height:1;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:8px;height:fit-content}
-.x:hover{background:var(--surface-2);color:var(--ink)}
+.dr-head{padding:16px 20px;background:var(--ink);color:#fff;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dr-head .eyebrow{font-size:13px;color:#C9D0C9}
+.dr-head h3{font-weight:900;font-size:24px;margin:2px 0 0;letter-spacing:-.4px}
+.dr-head .sub{color:#C9D0C9!important}
+.dr-body{overflow:auto;padding:16px 20px 24px;display:grid;gap:14px;align-content:start}
+.x{font:inherit;font-size:26px;line-height:1;background:none;border:0;color:#fff;cursor:pointer;padding:2px 8px;height:fit-content}
+.x:hover{opacity:.75}
 
-/* sections */
+/* 본문 구역 */
 section.block{padding-block:56px 8px}
-.sec-head{display:grid;gap:6px;margin-bottom:22px;max-width:760px}
-.sec-head h2{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,3vw,36px);margin:0;line-height:1.2;text-wrap:balance}
+.sec-head{margin-bottom:20px;max-width:760px}
+.sec-head h2{font-weight:900;font-size:clamp(25px,3vw,34px);margin:0 0 6px;line-height:1.25;letter-spacing:-.6px;text-wrap:balance}
 .sec-head p{margin:0;color:var(--muted)}
-.law{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.law .cell{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:6px;align-content:start}
-.law .cell span{font-size:12.5px;color:var(--muted)}
-.law .cell b{font-size:17px}
-.law .cell p{margin:0;font-size:14px;color:var(--muted)}
-.cover{margin-top:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
-.cover .col{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
-.cover h3{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:8px}
-.cover ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
-.cover li{display:grid;grid-template-columns:20px 1fr;gap:8px;font-size:14px}
-.cover li::before{content:"";width:8px;height:8px;border-radius:2px;margin-top:8px;background:var(--ok)}
-.cover .no li::before{background:var(--danger);border-radius:50%}
-.cover li small{display:block;color:var(--muted);font-size:12.5px}
-.draft{margin-top:12px;font-size:12.5px;color:var(--muted)}
+.eyebrow{font-size:13px;color:var(--muted);font-weight:600}
 
-.faq{display:grid;gap:8px;max-width:920px}
-.faq details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0 18px}
-.faq summary{cursor:pointer;padding:16px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:16px}
+/* 법 요약표 */
+.lawtbl{width:100%;border-collapse:collapse;background:var(--paper);border-top:3px solid var(--ink)}
+.lawtbl th,.lawtbl td{border-bottom:1px solid var(--rule);padding:14px 16px;text-align:left;vertical-align:top}
+.lawtbl th{width:150px;background:var(--paper-2);font-weight:800;font-size:14.5px}
+.lawtbl td b{display:block;font-size:17px;font-weight:800}
+.lawtbl td p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+
+/* 보장 / 미보장: 안내표지·금지표지 */
+.cover{margin-top:20px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.sign{background:var(--paper);border:2px solid var(--green)}
+.sign.no{border-color:var(--red)}
+.sign h3{margin:0;background:var(--green);color:#fff;font-size:17px;font-weight:800;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.sign.no h3{background:var(--red)}
+.sign h3 svg{width:24px;height:24px;flex:none}
+.sign ul{margin:0;padding:6px 14px 10px;list-style:none}
+.sign li{padding:10px 0;border-bottom:1px solid var(--rule);font-size:15px;font-weight:700}
+.sign li:last-child{border-bottom:0}
+.sign li small{display:block;color:var(--muted);font-size:13.5px;font-weight:400;margin-top:2px}
+.draft{margin-top:12px;font-size:13px;color:var(--muted)}
+
+/* 자주 묻는 질문 */
+.faq{max-width:900px;border-top:3px solid var(--ink);background:var(--paper)}
+.faq details{border-bottom:1px solid var(--rule);padding:0 16px}
+.faq summary{cursor:pointer;padding:15px 0;font-weight:800;list-style:none;display:grid;grid-template-columns:28px 1fr 20px;gap:6px;align-items:baseline}
+.faq summary::before{content:"Q";color:var(--green);font-weight:900}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"+";font-family:var(--f-mono);color:var(--muted);font-size:18px;line-height:1}
+.faq summary::after{content:"+";color:var(--muted);font-size:20px;line-height:1;text-align:right}
 .faq details[open] summary::after{content:"−"}
-.faq summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
-.faq .a{padding-bottom:16px;color:var(--muted);font-size:14.5px;max-width:72ch}
+.faq .a{padding:0 0 16px 34px;color:var(--ink);font-size:15px;max-width:72ch}
 
-/* form */
-.quote{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.8fr);gap:16px;align-items:start}
-form.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:18px}
-fieldset{border:0;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-legend{font-size:12px;font-family:var(--f-mono);letter-spacing:.12em;color:var(--accent-ink);font-weight:600;margin-bottom:10px;grid-column:1/-1;text-transform:uppercase}
-.f{display:grid;gap:5px;min-width:0}
+/* 견적 신청서: 서식 표 */
+.quote{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,.75fr);gap:20px;align-items:start}
+form.panel{background:var(--paper);border:2px solid var(--ink);padding:0;display:grid}
+.form-title{margin:0;text-align:center;font-size:19px;font-weight:900;letter-spacing:2px;padding:14px 12px;border-bottom:2px solid var(--ink)}
+fieldset{border:0;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+legend{float:left;width:100%;grid-column:1/-1;font-size:14px;font-weight:800;background:var(--paper-2);padding:8px 14px;border-bottom:1px solid var(--rule-2)}
+legend+*{clear:both}
+.f{display:grid;grid-template-columns:132px minmax(0,1fr);min-width:0;border-bottom:1px solid var(--rule)}
+.f:nth-of-type(odd):not(.wide){border-right:1px solid var(--rule)}
 .f.wide{grid-column:1/-1}
-.f label{font-size:13px;font-weight:600}
-.f label i{color:var(--danger);font-style:normal;margin-left:2px}
-.f input,.f select,.f textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;width:100%}
-.f textarea{min-height:84px;resize:vertical}
-.f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.f label{font-size:14px;font-weight:700;background:var(--paper-2);padding:10px 12px;border-right:1px solid var(--rule);display:flex;align-items:center}
+.f label i{color:var(--blue);font-style:normal;margin-left:3px}
+.f>input,.f>select,.f>textarea,.f .unit{grid-column:2}
+.f input,.f select,.f textarea{font:inherit;font-size:15px;color:var(--ink);background:transparent;border:0;border-radius:0;padding:10px 12px;width:100%;min-height:44px}
+.f textarea{min-height:88px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--blue);outline-offset:-2px;background:#F2F6FD}
 .f .unit{position:relative}
-.f .unit input{padding-right:46px}
-.f .unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted)}
-.f .err{font-size:12px;color:var(--danger);min-height:0}
-.f.bad input,.f.bad select{border-color:var(--danger)}
-.f .help{font-size:12px;color:var(--muted)}
-.consent{background:var(--surface-2);border-radius:10px;padding:14px 16px;display:grid;gap:10px}
-.consent label{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:600;cursor:pointer}
-.consent input{width:18px;height:18px;margin-top:2px;accent-color:var(--ink)}
-.consent details{font-size:13px;color:var(--muted)}
-.consent summary{cursor:pointer;color:var(--ink);font-weight:500}
-.consent table{border-collapse:collapse;width:100%;margin-top:8px;font-size:12.5px}
-.consent th,.consent td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
-.consent th{width:90px;font-weight:600;color:var(--ink)}
-.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.status{font-size:13.5px}
-.aside{display:grid;gap:12px}
-.aside .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
-.aside h3{margin:0 0 8px;font-size:16px}
-.steps{margin:0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:s}
-.steps li{display:grid;grid-template-columns:28px 1fr;gap:10px;font-size:14px;counter-increment:s}
-.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--f-mono);font-size:12px}
-.steps li small{display:block;color:var(--muted);font-size:12.5px}
-.done{border:1px solid var(--ok);background:var(--ok-soft);border-radius:16px;padding:24px;display:grid;gap:10px}
-.done h3{margin:0;font-size:20px}
-.done dl{display:grid;grid-template-columns:110px 1fr;gap:4px 12px;margin:0;font-size:14px}
+.f .unit input{padding-right:52px}
+.f .unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted)}
+.f .err{grid-column:2;font-size:12.5px;color:var(--red);padding:0 12px}
+.f .err:empty{display:none}
+.f .help{grid-column:2;font-size:12.5px;color:var(--muted);padding:0 12px 8px}
+.f.bad label{color:var(--red)}
+.consent{padding:14px 16px;display:grid;gap:10px;border-top:1px solid var(--rule-2)}
+.consent label{display:flex;gap:10px;align-items:flex-start;font-size:15px;font-weight:700;cursor:pointer}
+.consent input{width:20px;height:20px;margin-top:2px;accent-color:var(--green)}
+.consent details{font-size:13.5px;color:var(--muted)}
+.consent summary{cursor:pointer;color:var(--ink);font-weight:600}
+.consent table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13px}
+.consent th,.consent td{border:1px solid var(--rule);padding:6px 8px;text-align:left;vertical-align:top}
+.consent th{width:90px;font-weight:700;color:var(--ink);background:var(--paper-2)}
+.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--rule-2)}
+.actions .btn{padding:12px 28px;font-size:16px}
+.status{font-size:14px}
+.aside{display:grid;gap:16px}
+.aside .box{background:var(--paper);border:1px solid var(--rule-2);border-top:4px solid var(--ink);padding:14px 16px}
+.aside h3{margin:0 0 8px;font-size:16px;font-weight:800}
+.steps{margin:0;padding:0;list-style:none;display:grid;gap:0;counter-reset:s}
+.steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;font-size:14.5px;font-weight:700;counter-increment:s;padding:8px 0;border-bottom:1px dashed var(--rule)}
+.steps li:last-child{border-bottom:0}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:800}
+.steps li small{display:block;color:var(--muted);font-size:13px;font-weight:400}
+.done{border:2px solid var(--green);background:var(--paper);padding:22px;display:grid;gap:10px}
+.done h3{margin:0;font-size:20px;font-weight:900}
+.done dl{display:grid;grid-template-columns:110px 1fr;gap:4px 12px;margin:0;font-size:14.5px}
 .done dt{color:var(--muted)}
 .done dd{margin:0}
 
-/* admin */
-.admin-tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
-.admin-tbl table{border-collapse:collapse;width:100%;min-width:980px;font-size:13px}
-.admin-tbl th,.admin-tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.admin-tbl th{font-size:12px;color:var(--muted);font-weight:600;background:var(--surface-2);position:sticky;top:0}
-.admin-tbl td.num{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.admin-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-
-footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:grid;gap:6px}
+footer{margin-top:56px;padding-top:16px;border-top:2px solid var(--ink);font-size:13px;color:var(--muted);display:grid;gap:6px}
 
 @media (max-width:1080px){.board{grid-template-columns:1fr}.side{max-height:none}.list{max-height:420px}}
-@media (max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.law{grid-template-columns:1fr}.cover{grid-template-columns:1fr}.quote{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.stamp{text-align:left}}
-@media (max-width:560px){#btnSpin{display:none}#btnBack:not([hidden])~#btnReset{display:none}.stage-bar{flex-wrap:nowrap}.crumb{top:60px;font-size:20px}.stage{min-height:560px}fieldset{grid-template-columns:1fr}form.panel{padding:18px}.legend{display:none}.hint{left:14px;right:14px;max-width:none}nav{margin-left:0}.top .wrap{gap:8px}}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px}.kpi:nth-child(3){border-left:0;padding-left:0}.cover{grid-template-columns:1fr}.quote{grid-template-columns:1fr}.lawtbl th{width:96px}}
+@media (max-width:560px){#btnSpin{display:none}#btnBack:not([hidden])~#btnReset{display:none}.stage-bar{flex-wrap:nowrap}.crumb{top:60px;font-size:20px}.stage{min-height:560px}fieldset{grid-template-columns:1fr}.f:nth-of-type(odd):not(.wide){border-right:0}.f{grid-template-columns:minmax(0,1fr)}.f label{border-right:0;border-bottom:1px solid var(--rule);padding:7px 12px}.f>input,.f>select,.f>textarea,.f .unit,.f .err,.f .help{grid-column:1}.form-title{letter-spacing:0;font-size:17px}.legend{display:none}.hint{left:12px;right:12px;max-width:none}nav{margin-left:0}nav a{padding:6px 9px;font-size:13.5px}.top .wrap{gap:6px}.brand small{display:none}.lawtbl th,.lawtbl td{display:block;width:auto}.lawtbl th{border-bottom:0;padding-bottom:4px}.lawtbl td{padding-top:4px}.boardframe-head{padding:10px 12px}.kpis{padding:12px 12px 0}}
 
 /* 사고 카드 (자체 디자인) */
-.jdc{--tone:#E8ECF0;font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#fff;color:#14202B;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(10,30,50,.18);border:1px solid #D3DAE1;width:100%;max-width:380px}
-.jdc-top{position:relative;background:#14202B;color:#EAF0F5;padding:16px 18px 14px}
-.jdc-top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:repeating-linear-gradient(-45deg,#E8A100 0 10px,#14202B 10px 20px)}
-.jdc-brand{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;color:#9FB2C2;display:flex;align-items:center;gap:6px}
+.jdc{--tone:#E8ECF0;font-family:var(--f);background:#fff;color:#1C1F1D;border-radius:2px;overflow:hidden;border:1px solid #9AA39A;width:100%;max-width:380px}
+.jdc-top{position:relative;background:#1C1F1D;color:#EAF0F5;padding:16px 18px 14px}
+.jdc-top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:repeating-linear-gradient(-45deg,#FFC20E 0 10px,#1C1F1D 10px 20px)}
+.jdc-brand{font-size:12.5px;font-weight:600;color:#9FB2C2;display:flex;align-items:center;gap:6px}
 .jdc-dot{width:7px;height:7px;border-radius:50%;background:#FF5A4A;box-shadow:0 0 0 3px rgba(255,90,74,.25)}
 .jdc-when{margin-top:8px;display:flex;align-items:baseline;gap:8px}
-.jdc-when b{font-family:"Black Han Sans",sans-serif;font-weight:400;font-size:26px;letter-spacing:.01em}
-.jdc-when span{font-family:"IBM Plex Mono",monospace;font-size:14px;color:#F5B82E}
+.jdc-when b{font-weight:900;font-size:26px;letter-spacing:-.5px}
+.jdc-when span{font-size:15px;font-weight:700;color:#FFC20E}
 .jdc-where{font-size:16px;font-weight:600;margin-top:2px;margin-bottom:4px}
 .jdc-art{position:relative;background:var(--tone);padding:10px 24px 0;display:flex;justify-content:center}
 .jdc-art svg{width:100%;max-width:300px;height:auto;display:block}
 .jdc-note{position:absolute;right:10px;top:8px;font-size:10px;color:#5A6774;background:rgba(255,255,255,.7);border-radius:6px;padding:1px 6px}
 .jdc-body{padding:14px 18px 6px}
 .jdc-tags{display:flex;flex-wrap:wrap;gap:6px}
-.jdc-tags .tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:#EEF2F5;color:#3E4D5A}
+.jdc-tags .tag{font-size:12.5px;font-weight:700;padding:3px 9px;border-radius:2px;background:#EEF2F5;color:#3E4D5A}
 .jdc-tags .dead{background:#FBE3E0;color:#B3261E}
 .jdc-tags .hurt{background:#FFF1CC;color:#8A5C00}
 .jdc-head{font-size:16px;line-height:1.55;font-weight:600;margin:12px 0 12px}
-.jdc-tips{background:#F5F7F9;border-radius:12px;padding:12px 14px}
-.jdc-tips h4{margin:0 0 6px;font-size:13px;color:#1F7A55}
+.jdc-tips{background:#F3F5F1;border-left:4px solid #00704A;padding:12px 14px}
+.jdc-tips h4{margin:0 0 6px;font-size:14px;color:#00704A}
 .jdc-tips ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.6;color:#2A3742}
 .jdc-cta{margin:14px 0 4px;border-top:1px dashed #D3DAE1;padding-top:12px}
 .jdc-cta p{margin:0 0 10px;font-size:12.5px;color:#5A6774;line-height:1.5}
-.jdc-btn{display:block;text-align:center;background:#14202B;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:12px;border-radius:12px}
+.jdc-btn{display:block;text-align:center;background:#00704A;color:#fff;text-decoration:none;font-weight:800;font-size:15.5px;padding:13px;border-radius:2px}
 .jdc-foot{font-size:11px;color:#7A8794;padding:10px 18px 14px}
 .jdc-foot a{color:#3E4D5A}
 @media (max-width:560px){.jdc-art svg{max-height:150px}}
@@ -279,7 +286,7 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-si
 <div class="hazard" aria-hidden="true"></div>
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#board"><span class="brand-mark">重</span><span><b>중대재해 MAP</b><small>SERIOUS ACCIDENT MONITOR</small></span></a>
+    <a class="brand" href="#board"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2.5h6v6.5h6.5v6H15v6.5H9V15H2.5V9H9z" fill="#00704A"/></svg></span><span><b>중대재해 MAP</b><small>전국 중대재해 현황과 대비</small></span></a>
     <nav aria-label="주요 메뉴">
       <a href="#board">현황판</a>
       <a href="#insurance">보험 안내</a>
@@ -291,23 +298,21 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-si
 
 <main class="wrap">
   <div class="hero" id="board">
-    <div>
-      <div class="eyebrow">전국 중대재해 현황판</div>
-      <h1>오늘, 전국 사업장에서 일어난 중대재해</h1>
-      <p class="lede">안전보건공단 '중대재해 사이렌'에 게시되는 사고를 매일 지도에 표시합니다. 지역을 한 번 누르면 해당 시·도가 솟아오르고, 한 번 더 누르면 사고 상세 내용이 열립니다.</p>
-    </div>
-    <div class="stamp">
-      <span class="chip" id="dataChip">불러오는 중</span><br>
-      기준일 <b id="baseDate">-</b><br>
-      출처 안전보건공단 중대재해 사이렌
-    </div>
+    <h1>오늘 전국 사업장에서 일어난 중대재해</h1>
+    <p class="lede">안전보건공단 '중대재해 사이렌'에 올라오는 사고를 하루 세 번 모아 지도에 표시합니다. 지역을 누르면 그 지역에서 일어난 사고를 볼 수 있습니다.</p>
   </div>
 
-  <div class="kpis" aria-live="polite">
+  <div class="boardframe" aria-live="polite">
+    <div class="boardframe-head">
+      <h2><span class="cross"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2.5h6v6.5h6.5v6H15v6.5H9V15H2.5V9H9z" fill="#00704A"/></svg></span>전국 중대재해 현황판</h2>
+      <div class="stamp"><span class="chip" id="dataChip">불러오는 중</span><span>오늘 <b id="baseDate">-</b></span><span>마지막 사고 게시 <b id="lastPost">-</b></span></div>
+    </div>
+  <div class="kpis">
     <div class="kpi alert"><span>오늘 게시된 사고</span><b id="kToday">-<small>건</small></b><em id="kTodaySub">&nbsp;</em></div>
     <div class="kpi"><span>최근 7일</span><b id="k7">-<small>건</small></b><em id="k7Sub">&nbsp;</em></div>
     <div class="kpi"><span>최근 30일 사망자</span><b id="kDead">-<small>명</small></b><em id="kDeadSub">&nbsp;</em></div>
     <div class="kpi"><span>최근 30일 최다 업종</span><b id="kInd">-</b><em id="kIndSub">&nbsp;</em></div>
+  </div>
   </div>
 
   <div class="board">
@@ -336,7 +341,7 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-si
       <div class="tip" id="tip"></div>
       <div class="maperr" id="mapErr" hidden></div>
       <div class="ticker" aria-label="최근 사고 전광판">
-        <div class="lab">LIVE</div>
+        <div class="lab">최근 사고</div>
         <div class="track" id="track"></div>
       </div>
     </div>
@@ -363,41 +368,43 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-si
   <!-- 보험 안내 -->
   <section class="block" id="insurance">
     <div class="sec-head">
-      <div class="eyebrow">기업중대재해배상책임보험</div>
-      <h2>사고 한 건이 회사에 남기는 책임</h2>
-      <p>중대재해처벌법은 사업주와 경영책임자에게 안전보건 확보의무를 지우고, 중대재해가 발생하면 형사처벌과 손해배상책임을 함께 묻습니다.</p>
+      <h2>중대재해가 나면 회사가 지는 책임</h2>
+      <p>중대재해처벌법은 사업주와 경영책임자에게 안전보건 확보의무를 지웁니다. 의무를 지키지 않은 상태에서 중대재해가 나면 형사처벌과 손해배상을 함께 묻습니다.</p>
     </div>
-    <div class="law">
-      <div class="cell"><span>적용 대상</span><b>상시근로자 5인 이상 사업장</b><p>2022년 1월 27일 시행, 2024년 1월 27일부터 50인 미만 사업장까지 확대 적용</p></div>
-      <div class="cell"><span>형사 책임 (사망 시)</span><b>1년 이상 징역 또는 10억원 이하 벌금</b><p>법인에는 50억원 이하 벌금 병과 (양벌규정)</p></div>
-      <div class="cell"><span>민사 책임</span><b>손해액의 최대 5배 배상</b><p>고의 또는 중대한 과실로 의무를 위반한 경우 징벌적 손해배상</p></div>
-    </div>
+    <table class="lawtbl">
+      <tr><th scope="row">적용 대상</th><td><b>상시근로자 5인 이상 모든 사업장</b><p>본사와 모든 사업장·공사현장 근로자를 합쳐서 셉니다. 2024년 1월 27일부터 50인 미만 사업장과 50억 원 미만 공사도 적용됩니다.</p></td></tr>
+      <tr><th scope="row">경영책임자 처벌</th><td><b>사망 시 1년 이상 징역 또는 10억 원 이하 벌금</b><p>부상·질병은 7년 이하 징역 또는 1억 원 이하 벌금. 5년 안에 다시 일어나면 형의 2분의 1까지 가중됩니다.</p></td></tr>
+      <tr><th scope="row">법인 벌금</th><td><b>사망 시 50억 원 이하</b><p>부상·질병은 10억 원 이하. 경영책임자 처벌과 함께 부과됩니다.</p></td></tr>
+      <tr><th scope="row">손해배상</th><td><b>손해액의 최대 5배</b><p>고의나 중대한 과실로 의무를 어긴 경우 징벌적 손해배상을 집니다.</p></td></tr>
+      <tr><th scope="row">공표</th><td><b>사업장 이름과 사고 내용 공개</b><p>고용노동부가 사업장 이름, 발생 일시·장소, 사고 원인 등을 공표할 수 있습니다.</p></td></tr>
+    </table>
     <div class="cover">
-      <div class="col">
-        <h3><span class="chip ok">보상</span>보험으로 대비할 수 있는 것</h3>
+      <div class="sign">
+        <h3><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" fill="#fff"/><path d="M6 12.5l4 4 8-9" fill="none" stroke="#00704A" stroke-width="3" stroke-linecap="square"/></svg>기업중대사고배상책임보험으로 대비할 수 있는 것</h3>
         <ul>
-          <li><span>피해 근로자·유족에 대한 법률상 손해배상금<small>사용자배상책임 및 중대재해 관련 배상책임, 징벌적 손해배상 포함 여부는 상품 조건에 따름</small></span></li>
-          <li><span>형사·민사 소송 방어비용<small>변호사 선임비용, 소송비용, 중재·화해 비용</small></span></li>
-          <li><span>사고 후 위기관리 비용<small>언론 대응, 현장 수습 등 특약 가입 시</small></span></li>
+          <li>피해자·유족에게 물어 줄 법률상 손해배상금<small>소송비용과 변호사비용 포함</small></li>
+          <li>징벌적 손해배상금<small>특약 가입 시, 법원이 법 제15조에 따라 배상을 명한 경우</small></li>
+          <li>형사 방어비용<small>특약 가입 시, 불기소나 무죄로 끝난 경우에 한해 변호사 선임비용 등</small></li>
+          <li>사고 뒤 위기관리 비용<small>특약 가입 시, 수사 시작이나 공표 뒤의 컨설팅, 사과문, 안전보건진단 비용 등</small></li>
         </ul>
       </div>
-      <div class="col no">
-        <h3><span class="chip red">미보상</span>보험으로 대신할 수 없는 것</h3>
+      <div class="sign no">
+        <h3><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff"/><circle cx="12" cy="12" r="8" fill="none" stroke="#D7261E" stroke-width="3"/><path d="M6.5 6.5l11 11" stroke="#D7261E" stroke-width="3"/></svg>보험으로 대신할 수 없는 것</h3>
         <ul>
-          <li><span>사업주·법인에 부과되는 벌금, 과태료<small>형사 처벌에 따른 금전 제재는 보험 대상이 아님</small></span></li>
-          <li><span>고의로 일으킨 사고<small>고의·범죄행위로 인한 손해</small></span></li>
-          <li><span>안전보건 확보의무 이행 자체<small>보험은 사고 이후의 재무 위험을 덜어 줄 뿐, 법적 의무를 대신하지 않음</small></span></li>
+          <li>벌금과 과태료<small>형사처벌로 내는 돈은 보상하지 않습니다</small></li>
+          <li>고의로 일으킨 사고</li>
+          <li>산재보험 등 의무보험에서 보상하는 금액</li>
+          <li>안전보건 확보의무 그 자체<small>보험은 사고 뒤의 돈 문제를 덜어 줄 뿐, 법적 의무를 대신하지 않습니다</small></li>
         </ul>
       </div>
     </div>
-    <p class="draft">※ 보장 내용과 한도는 상품 약관과 가입 조건에 따라 다릅니다. 가입 전 상품설명서와 약관을 확인하세요.</p>
+    <p class="draft">보장 내용과 한도는 보험사 상품과 가입 조건에 따라 다릅니다. 가입 전에 상품설명서와 약관을 확인하세요.</p>
   </section>
 
   <!-- Q&A -->
   <section class="block" id="faq">
     <div class="sec-head">
-      <div class="eyebrow">자주 묻는 질문</div>
-      <h2>가입 전에 많이 물어보시는 것</h2>
+      <h2>가입 전에 많이 묻는 질문</h2>
     </div>
     <div class="faq">
       <details><summary>우리 회사도 중대재해처벌법 적용 대상인가요?</summary><div class="a">상시근로자 5인 이상이면 업종과 관계없이 적용됩니다. 2024년 1월 27일부터는 50인 미만 사업장도 포함됩니다. 하도급 관계에서는 원청도 책임을 질 수 있습니다.</div></details>
@@ -412,13 +419,13 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-si
   <!-- 견적 신청 -->
   <section class="block" id="quote">
     <div class="sec-head">
-      <div class="eyebrow">간편 견적 신청</div>
-      <h2>기본 정보만 남기시면 담당자가 연락드립니다</h2>
-      <p>보험료 산출에 필요한 항목입니다. 정확하지 않아도 괜찮습니다. 상담하면서 함께 확인합니다.</p>
+      <h2>간편 견적 신청</h2>
+      <p>보험료를 계산하는 데 필요한 기본 항목입니다. 정확하지 않아도 됩니다. 상담하면서 함께 확인합니다.</p>
     </div>
     <div class="quote">
       <div id="formWrap">
         <form class="panel" id="qform" novalidate>
+          <h3 class="form-title">기업중대사고배상책임보험 견적 신청서</h3>
           <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true"><label for="q_website">웹사이트</label><input id="q_website" name="website" tabindex="-1" autocomplete="off"></div>
           <fieldset>
             <legend>사업장 정보</legend>
@@ -582,13 +589,13 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-si
   }
 
   window.JDCARD = {
-    TIPS, html(x, opt = {}) {
+    TIPS, headline, html(x, opt = {}) {
       const t = TIPS[x.accident_type] ? x.accident_type : "기타";
       const w = when(x);
       const tips = TIPS[t].map(s => `<li>${esc(s)}</li>`).join("");
       return `<article class="jdc" style="--tone:${TONE[t]}">
   <div class="jdc-top">
-    <div class="jdc-brand"><span class="jdc-dot"></span>중대재해 MAP · 사고 알림</div>
+    <div class="jdc-brand"><span class="jdc-dot"></span>중대재해 MAP 사고 알림</div>
     <div class="jdc-when"><b>${esc(w.day)}</b>${w.time ? `<span>${esc(w.time)}경</span>` : ""}</div>
     <div class="jdc-where">${esc(FULLN[x.sido] || "")} ${esc(x.sido === "세종" ? "세종시" : (x.sigungu || ""))}</div>
   </div>
@@ -620,7 +627,7 @@ const NAME_KO = {"Seoul":"서울","Busan":"부산","Daegu":"대구","Incheon":"�
 const FULL = {"서울":"서울특별시","부산":"부산광역시","대구":"대구광역시","인천":"인천광역시","광주":"광주광역시","대전":"대전광역시","울산":"울산광역시","세종":"세종특별자치시","경기":"경기도","강원":"강원특별자치도","충북":"충청북도","충남":"충청남도","전북":"전북특별자치도","전남":"전라남도","경북":"경상북도","경남":"경상남도","제주":"제주특별자치도"};
 // 통계청 SGIS 등 국문 시도명 경계 데이터도 그대로 쓸 수 있게
 const KO_ALIAS = Object.assign({}, ...Object.entries(FULL).map(([k,v]) => ({[v]:k, [k]:k})), {"강원도":"강원","전라북도":"전북"});
-let BASE = new Date();
+let BASE = new Date(), LAST_POST = null;
 let INCIDENTS = [];
 
 function parseDt(s){ if (!s) return null; const d = new Date(s.length > 10 ? s.replace(" ","T") : s + "T00:00"); return isNaN(d) ? null : d; }
@@ -628,7 +635,10 @@ async function loadIncidents(){
   try {
     const j = window.JDMAP_DATA;
     if (!j || !Array.isArray(j.items)) throw new Error("no data");
-    BASE = parseDt(j.base_date) || new Date();
+    // '오늘·최근 7일·30일'은 실제 오늘 날짜(한국 시간) 기준. 새 게시물이 없는 날은 오늘 0건으로 보인다.
+    const now = new Date(Date.now() + (9 * 60 + new Date().getTimezoneOffset()) * 60000);
+    BASE = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    LAST_POST = parseDt(j.base_date);
     INCIDENTS = j.items.map(x => {
       const posted = parseDt(x.posted_date), occ = parseDt(x.occurred_at);
       return { id: "i" + (x.id ?? Math.random().toString(36).slice(2)), region: x.sido || null, sigungu: x.sigungu || "", ind: x.industry || "", type: x.accident_type || "",
@@ -662,7 +672,7 @@ const title = x => x.title || `${x.region || "지역 미상"} ${x.sigungu || ""}
 
 /* ---------- KPI / 티커 ---------- */
 function renderKpis(){
-  $("baseDate").textContent = fmtD(BASE);
+  $("baseDate").textContent = fmtD(BASE); $("lastPost").textContent = LAST_POST ? fmtD(LAST_POST) : "-";
   const t = inRange(1), w = inRange(7), m = inRange(30), pw = INCIDENTS.filter(x=>x.age>=7&&x.age<14);
   $("kToday").innerHTML = `${t.length}<small>건</small>`;
   $("kTodaySub").textContent = `사망 ${t.reduce((s,x)=>s+x.dead,0)}명 · 부상 ${t.reduce((s,x)=>s+x.inj,0)}명`;
@@ -704,7 +714,7 @@ function renderSide(){
       <span class="sev ${x.dead?"dead":""}"></span>
       <span><span class="meta"><span>${x.hasTime ? fmtD(x.when)+" "+fmtT(x.when) : fmtD(x.posted)}</span><span>${esc(x.region)} ${esc(x.sigungu)}</span></span>
       <div class="ttl">${esc(x.ind || "업종 미상")} · ${esc(x.type || "유형 미상")} ${x.dead?`<span class="chip red">사망 ${x.dead}</span>`:`<span class="chip">부상 ${x.inj}</span>`}</div>
-      <div class="ov">${esc(x.text)}</div></span>
+      <div class="ov">${esc(window.JDCARD ? JDCARD.headline(x.raw) : x.text)}</div></span>
     </button>`).join("") : `<div class="empty">${label} 동안 ${sd ? placeName()+"에서 " : ""}게시된 사고가 없습니다.</div>`;
 }
 $("sList").addEventListener("click", e => { const b = e.target.closest(".inc"); if (b) { const it = INCIDENTS.find(x=>x.id===b.dataset.id); openDrawer(it.region, b.dataset.id); }; });
